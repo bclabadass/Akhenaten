@@ -10,15 +10,17 @@ Goal: play Pharaoh + Cleopatra on an **iPhone Duo** (iOS 27) via a native iOS bu
 - Mac baseline build works: `./compile_macos.sh arm64`, run with
   `./build-arm64/akhenaten.app/Contents/MacOS/akhenaten --window --size 1280x960 <data dir>`
   (some visual/sound bugs, these are upstream engine issues, not port issues)
+- Placeholders such as `<DUO_UDID>`, `<TEAM_ID>` and `<BUNDLE_ID>` stand for personal values, kept in `IOS_PORT.local.md` next to this file (not committed; listed in `.git/info/exclude`).
 - Devices: **iPhone Duo** `<DUO_UDID>` (iPhone19,4, iOS 27.3 beta 24C5037i, Developer Mode on), iPad Pro 11" M1 `<IPAD_UDID>`.
 - Signing: free Personal Team `<TEAM_ID>`, Apple ID signed into Xcode. Profiles last 7 days; the current one expires **2026-11-14**, so rebuild and reinstall after that.
 
 ## Status
-**Runs on the iPhone Duo** (Debug build, signed, SDK 26.0 link stamp). Brendan's report, 2026-11-07:
+**Runs on the iPhone Duo** (Debug build, signed, built with the iOS 27.2 SDK; UIScene support via an SDL patch). Brendan's report, 2026-11-07:
 - Loads, shows the menus, and lists saved data.
 - New maps work: scrolling, placing buildings, and walkers behave normally.
 - **Loading a saved map crashes the game.** Not yet investigated.
 - **Right-click: fixed, confirmed on the Duo.** A two-finger tap in the city view drops the build tool and undoes a drag in progress (`screen_city_t::handle_two_finger_gesture`); two-finger pan/pinch keeps it. Covered by `tests/278_touch_two_finger_cancel.js`, using the `__test_touch_down/move/up` helpers in `src/js/js_test_game.cpp` (not valid UTF-8: edit it byte-wise).
+- **Settings now persist on iOS** (confirmed on the Duo). They were only written on a clean Quit or a game save; iOS suspends and later kills apps without one. `platform_ios.cpp` saves them from an SDL event watch on `SDL_APP_WILLENTERBACKGROUND`/`SDL_APP_TERMINATING` (logged as "platform::ios: leaving foreground, saving settings").
 - **Pinch-zoom: fixed, confirmed on the Duo** (with "Enable zoom" on). Two causes:
   - Zoom was off by default (`gameui_zoom`), and with it off `zoom_t::update_value` resets the zoom every frame. It now defaults to on for iOS only (`src/game/game_config.cpp`); desktop and `--og` keep it off. The fresh-install default is untested on a device.
   - `get_latest_touch()` returned the same finger as `get_earliest_touch()` when both landed in the same millisecond (one iOS touch event), so the pinch measured 0 and never zoomed. Covered by `tests/279_touch_pinch_zoom_holds.js`.
@@ -42,11 +44,13 @@ The iOS changes touch shared code (`platform.h`, `akhenaten.cpp`, MuJS), so macO
 Before committing: format with clang-format 20, from Homebrew's `llvm@20` (the plain `clang-format` formula is a newer version that CI would reject):
 `PATH="$(brew --prefix llvm@20)/bin:$PATH" git clang-format --style=file --extensions cpp,cc,cxx,h,hpp`. Stage new files first, or it skips them. Repeat until it reports no changes: in files mixing tabs and spaces (e.g. `platform.h`) each pass reformats one more neighbouring line. Leave the untracked `akhenaten-log.txt` out.
 
-### UIScene blocker (iOS 27 SDK)
-- Crash: `EXC_BREAKPOINT` in `UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`, from `UIApplicationMain` in `SDL_UIKitRunApp`, before any game code runs.
-- Cause: SDL 2.32.10 has no UIScene code, and UIKit treats that as fatal for binaries stamped with the iOS 27 SDK.
-- Workaround: the `if(IOS)` link block in `CMakeLists.txt` passes `-platform_version <platform> <deployment target> 26.0`. **Works on the Simulator and on the Duo (iOS 27.3 beta).** It may stop working in a later iOS.
-- Lasting fix if needed: scene support in SDL (scene manifest and delegate, and attach `UIWindow` to its `windowScene`). Fold/unfold handling may also need it.
+### UIScene support (iOS 27 SDK)
+- iOS 27 traps at launch (`UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`) on apps built with its SDK that don't adopt UIScene. SDL 2.32.10 (the latest SDL2) has none.
+- A first workaround stamped the binary as SDK 26.0. iOS then ran the app in compatibility mode on the Duo: an iPhone 8 sized window (667x375 points), enlarged and fixed-size, so folding never resized it.
+- Fix: `cmake/patches/sdl2-2.32.10-ios-uiscene.patch` backports SDL3's UIScene support to SDL2's uikit driver: `SDLUIKitSceneDelegate` and the app delegate's scene configuration; launch window and `SDL_main` start once the scene connects; game window and message-box window created on the scene; orientation read from the scene instead of `statusBarOrientation`. It only switches on when `Info.plist` has a `UIApplicationSceneManifest` (ours does).
+- `CMakeLists.txt` applies the patch to the fetched SDL source on iOS builds only (`git apply`, with a reverse check so reconfiguring is safe; fails the configure if it doesn't apply). A new SDL version needs the patch regenerated.
+- Confirmed: Simulator (iPhone 18 Pro, 874x402 points) and Duo (678x466 points in the state it was in), sharp, and folding/unfolding mid-game resizes the game with touch still accurate.
+- Pinned for a potential future update: moving the engine to SDL3, which has this upstream.
 
 ### Simulator state (Xcode 27.2, checked 2026-11-07)
 - **iPhone 18 Pro** (`<SIM_UDID>`) boots cleanly. Use this one.
@@ -57,7 +61,7 @@ Before committing: format with clang-format 20, from Homebrew's `llvm@20` (the p
 2. `CMakeLists.txt`:
    - ~line 47: if `CMAKE_TOOLCHAIN_FILE` is set, `BUILD_ADDITIONAL_CMAKE_ARGS` passes only `-DCMAKE_TOOLCHAIN_FILE=<abs path>` to dependency sub-builds; otherwise the original macOS arch/deployment args.
    - curl skipped on iOS. libpng: `PNG_FRAMEWORK OFF`, `PNG_TOOLS OFF`. `akhenaten-updater` (desktop self-update helper) not built on iOS.
-   - Apple link block: `if(IOS)` branch with the iOS frameworks + `libSDL2main.a`, and the SDK 26.0 link stamp.
+   - Apple link block: `if(IOS)` branch with the iOS frameworks + `libSDL2main.a`.
    - macOS post-build blocks changed to `if(APPLE AND NOT IOS)`. The generic "Deploy engine data/" step still puts `data/` inside the iOS .app.
    - iOS bundle settings: `res/ios/Info.plist`; cache options `GAME_IOS_BUNDLE_ID` (default `mt.dalerank.akhenaten`) and `GAME_IOS_DEVELOPMENT_TEAM` (empty = no signing settings), mapped to Xcode's bundle ID, team and automatic signing.
 3. Platform layer: `GAME_PLATFORM_IOS` / `is_ios()` (`platform.h`), `src/platform/platform_ios.cpp` (data dir `Documents/PharaohData` resolved each launch, `get_steam_path` empty, user dir via `SDL_GetPrefPath`), Configuration dialog skipped on iOS, clean exit with instructions when data is missing.
@@ -126,5 +130,5 @@ When copying game data from a desktop install, leave out `akhenaten.conf`: the g
 5. **Ferry-boat assert** (`figure_ferry_boat::figure_action`, `allow_move_type == EMOVE_WATER`) seen in a new game on the Duo; Debug builds only, not investigated.
 6. **Device build type**: Release/RelWithDebInfo for the Duo (asserts off like desktop, smaller stack frames, faster).
 7. Log file on iOS; virtual keyboard (stubs today).
-8. Lasting UIScene fix in SDL, if the SDK-26 stamp stops working or fold/unfold needs it.
+8. Potential future update: move the engine to SDL3 (drops the SDL2 UIScene patch).
 9. Compare engine bugs with the Mac build; check or report them upstream. Optional: offer the iOS changes upstream as a PR (the MuJS fix and the touch fixes are useful on their own).

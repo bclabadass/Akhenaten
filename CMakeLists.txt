@@ -398,6 +398,29 @@ if(NOT WIN_EMSCRIPTEN)
 
     # FetchContent_Populate creates SDL2_SOURCE_DIR automatically
     set(SDL2_SOURCE_DIR "${sdl2_SOURCE_DIR}")
+
+    # iOS 27 traps at launch on apps built with its SDK that don't adopt UIScene, and SDL 2.32
+    # has none. The patch backports SDL3's scene delegate; it is used when Info.plist has a
+    # UIApplicationSceneManifest. The reverse check makes this safe to rerun on reconfigure.
+    if(IOS)
+        find_package(Git REQUIRED)
+        set(SDL2_IOS_PATCH "${CMAKE_SOURCE_DIR}/cmake/patches/sdl2-${SDL2_VERSION}-ios-uiscene.patch")
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} apply --reverse --check "${SDL2_IOS_PATCH}"
+            WORKING_DIRECTORY "${SDL2_SOURCE_DIR}"
+            RESULT_VARIABLE SDL2_IOS_PATCH_PRESENT
+            OUTPUT_QUIET ERROR_QUIET)
+        if(NOT SDL2_IOS_PATCH_PRESENT EQUAL 0)
+            execute_process(
+                COMMAND ${GIT_EXECUTABLE} apply "${SDL2_IOS_PATCH}"
+                WORKING_DIRECTORY "${SDL2_SOURCE_DIR}"
+                RESULT_VARIABLE SDL2_IOS_PATCH_RESULT)
+            if(NOT SDL2_IOS_PATCH_RESULT EQUAL 0)
+                message(FATAL_ERROR "Could not apply ${SDL2_IOS_PATCH} to ${SDL2_SOURCE_DIR}")
+            endif()
+            message(STATUS "Applied ${SDL2_IOS_PATCH}")
+        endif()
+    endif()
     set(SDL2_BUILD_BASE_DIR "${PREBUILT_LIBS_INTERMEDIATE_DIR}/SDL2")
     set(SDL2_BUILD_DIR "${SDL2_BUILD_BASE_DIR}/build")
     set(SDL2_INSTALL_DIR "${CMAKE_BINARY_DIR}/libs/SDL2")
@@ -1228,16 +1251,6 @@ if(IOS)
         "-framework GameController"
         z
     )
-
-    # Stopgap: UIKit traps at launch on binaries stamped with the iOS 27 SDK that don't adopt
-    # UIScene, and SDL 2.32 doesn't. Remove once SDL supports scenes.
-    if(CMAKE_OSX_SYSROOT MATCHES "iphonesimulator")
-        set(GAME_IOS_LINK_PLATFORM ios-simulator)
-    else()
-        set(GAME_IOS_LINK_PLATFORM ios)
-    endif()
-    target_link_options(${GAME} PRIVATE
-        "LINKER:-platform_version,${GAME_IOS_LINK_PLATFORM},${CMAKE_OSX_DEPLOYMENT_TARGET},26.0")
 elseif(APPLE)
     target_link_libraries(${GAME}
         "-framework Cocoa"

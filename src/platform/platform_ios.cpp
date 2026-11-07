@@ -4,6 +4,7 @@
 
 #include "core/bstring.h"
 #include "core/log.h"
+#include "game/game_config.h"
 
 #include <SDL.h>
 
@@ -15,7 +16,19 @@ uint32_t platform_init_sdl_flags() {
     return 0;
 }
 
+// iOS suspends apps and later kills them without a normal exit, so game_t::exit() never gets
+// to save changed settings. An event watch runs as the app leaves the foreground, while the
+// next frame might never come; save() does nothing when nothing changed.
+static int SDLCALL save_settings_when_backgrounded(void*, SDL_Event* event) {
+    if (event->type == SDL_APP_WILLENTERBACKGROUND || event->type == SDL_APP_TERMINATING) {
+        logs::info("platform::ios: leaving foreground, saving settings");
+        game_features::save();
+    }
+    return 1;
+}
+
 void platform_post_hint_init() {
+    SDL_AddEventWatch(save_settings_when_backgrounded, nullptr);
 }
 
 void platform_setup_begin() {
