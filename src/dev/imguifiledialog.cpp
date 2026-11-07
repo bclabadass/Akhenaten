@@ -469,12 +469,9 @@ public:
                 emscripten_run_script(str.c_str());
                 res = true;
 #elif defined(_IGFD_UNIX_)
-                char buffer[PATH_MAX] = {};
-                snprintf(buffer, PATH_MAX, "mkdir -p \"%s\"", vName.c_str());
-                const int dir_err = std::system(buffer);
-                if (dir_err != -1) {
-                    res = true;
-                }
+                std::error_code mkdir_ec;
+                std::filesystem::create_directories(vName, mkdir_ec);
+                res = !mkdir_ec;
 #endif  // _IGFD_WIN_
                 if (!res) {
                     std::cout << "Error creating directory " << vName << std::endl;
@@ -631,12 +628,9 @@ public:
                 emscripten_run_script(str.c_str());
                 res = true;
 #elif defined(_IGFD_UNIX_)
-                char buffer[PATH_MAX] = {};
-                snprintf(buffer, PATH_MAX, "mkdir -p \"%s\"", vName.c_str());
-                const int dir_err = std::system(buffer);
-                if (dir_err != -1) {
-                    res = true;
-                }
+                std::error_code mkdir_ec;
+                std::filesystem::create_directories(vName, mkdir_ec);
+                res = !mkdir_ec;
 #endif  // _IGFD_WIN_
                 if (!res) {
                     std::cout << "Error creating directory " << vName << std::endl;

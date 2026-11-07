@@ -1186,7 +1186,28 @@ endif()
 # Apple specific
 #
 
-if(APPLE)
+if(IOS)
+    target_link_libraries(${GAME}
+        "${SDL2_INSTALL_DIR}/lib/libSDL2main.a"
+        "-framework UIKit"
+        "-framework Foundation"
+        "-framework CoreFoundation"
+        "-framework CoreGraphics"
+        "-framework QuartzCore"
+        "-framework OpenGLES"
+        "-framework Metal"
+        "-framework MetalKit"
+        "-framework CoreVideo"
+        "-framework CoreAudio"
+        "-framework AudioToolbox"
+        "-framework AVFoundation"
+        "-framework CoreMotion"
+        "-framework CoreHaptics"
+        "-framework CoreBluetooth"
+        "-framework GameController"
+        z
+    )
+elseif(APPLE)
     target_link_libraries(${GAME}
         "-framework Cocoa"
         "-framework Carbon"
@@ -1204,7 +1225,7 @@ if(APPLE)
     )
 endif()
 
-if(APPLE)
+if(APPLE AND NOT IOS)
     set(MACOS_DIR "${CMAKE_BINARY_DIR}/akhenaten.app/Contents/MacOS")
     set(DATA_SRC_DIR "${CMAKE_SOURCE_DIR}/data")
     set(LAUNCH_SCRIPT_SRC "${CMAKE_SOURCE_DIR}/res/macos/launch.sh")
@@ -1241,7 +1262,7 @@ endif()
 set(BUILD_NUMBER_SRC "${CMAKE_BINARY_DIR}/buildnumber.txt")
 
 
-if(APPLE)
+if(APPLE AND NOT IOS)
     set(MACOS_DIR "${CMAKE_BINARY_DIR}/akhenaten.app/Contents/MacOS")
     add_custom_command(TARGET ${GAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy

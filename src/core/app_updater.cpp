@@ -1,4 +1,7 @@
 #include "core/app.h"
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
 #include "core/log.h"
 #include "core/profiler.h"
 #include "game/game.h"
@@ -313,10 +316,15 @@ bool updater_spawn_swap_and_restart(const std::string &work_dir, const std::stri
         + " --restart \"" + restart + "\""
         + " --cleanup \"" + work_dir + "\""
         + " >/dev/null 2>&1 &";
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+    logs::error("[updater] self-update is not supported on iOS");
+    return false;
+#else
     if (::system(cmd.c_str()) != 0) {
         logs::error("[updater] failed to launch helper");
         return false;
     }
+#endif
 #endif
 
     logs::info("[updater] helper launched, waiting for game to exit");
