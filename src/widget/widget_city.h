@@ -20,6 +20,8 @@ struct screen_city_t {
     int new_start_grid_offset;
     bool capture_input;
     bool buildings_flat_view = false;
+    bool two_finger_gesture = false;
+    bool two_finger_not_tap = false;
 
     local_render_context_t render_ctx;
     svector<screen_space_effect_cb *, 8> screen_space_effects;
@@ -30,6 +32,7 @@ struct screen_city_t {
     void handle_touch_scroll(const touch_t *t, bool force_capture_input);
     void clear_current_tile();
     void handle_first_touch(tile2i tile);
+    bool handle_two_finger_gesture();
     void handle_touch();
     void handle_mouse(const mouse *m);
     void handle_input(const mouse *m, const hotkeys *h);

@@ -60,7 +60,9 @@ const touch_t * get_latest_touch(void) {
     for (int i = 0; i < MAX_ACTIVE_TOUCHES; ++i) {
         if (data.finger[i].in_use && !start_delayed(&data.finger[i])) {
             ++active_touches;
-            if (data.finger[i].start_time > timestamp) {
+            // >= so two fingers landing in the same millisecond (one iOS touch event) are
+            // not both reported as earliest and latest; a pinch between them would measure 0.
+            if (data.finger[i].start_time >= timestamp) {
                 timestamp = data.finger[i].start_time;
                 touch_index = i;
             }
@@ -77,6 +79,19 @@ int get_total_active_touches(void) {
             ++active_touches;
     }
     return active_touches;
+}
+
+bool touch_all_ended() {
+    auto& data = g_touch_data;
+    bool any_in_use = false;
+    for (int i = 0; i < MAX_ACTIVE_TOUCHES; ++i) {
+        if (!data.finger[i].in_use)
+            continue;
+        if (!data.finger[i].has_ended)
+            return false;
+        any_in_use = true;
+    }
+    return any_in_use;
 }
 
 int touch_not_click(const touch_t * t) {

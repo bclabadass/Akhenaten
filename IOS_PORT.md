@@ -5,8 +5,8 @@ Goal: play Pharaoh + Cleopatra on an **iPhone Duo** (iOS 27) via a native iOS bu
 ## Environment
 - Mac: M5 Pro MacBook Pro, macOS 27, Xcode 27.2 with iOS SDK, Homebrew cmake/git/libpng, `llvm@20` (for clang-format 20)
 - Repo: `~/Developer/Akhenaten`, branch **`ios-port`** (upstream: github.com/dalerank/Akhenaten)
-- Game data (Steam, Pharaoh 1.3 + Cleopatra, copied from a Windows install): renamed on 2026-11-07 from `~/Games/Pharaoh` to **`~/Games/PharaohData`** (contains `campaign.txt`).
-  The macOS config (`~/Library/Application Support/Akhenaten/akhenaten.cfg`) still has `data_directory=~/Games/Pharaoh`, which now holds only test saves the integral suite wrote there. **Pending decision:** rename the folder back, or repoint the config.
+- Game data (Steam, Pharaoh 1.3 + Cleopatra, copied from a Windows install): `~/Games/Pharaoh` (contains `campaign.txt`), matching `data_directory` in `~/Library/Application Support/Akhenaten/akhenaten.cfg`.
+  The integral suite writes `test_*.svx` saves into its `Save/` folder; they also ended up on the Duo with the data copy.
 - Mac baseline build works: `./compile_macos.sh arm64`, run with
   `./build-arm64/akhenaten.app/Contents/MacOS/akhenaten --window --size 1280x960 <data dir>`
   (some visual/sound bugs, these are upstream engine issues, not port issues)
@@ -18,8 +18,10 @@ Goal: play Pharaoh + Cleopatra on an **iPhone Duo** (iOS 27) via a native iOS bu
 - Loads, shows the menus, and lists saved data.
 - New maps work: scrolling, placing buildings, and walkers behave normally.
 - **Loading a saved map crashes the game.** Not yet investigated.
-- **No right-click.** Placement mode can't be cancelled, so you get stuck with a building selected and eventually can't click off it.
-- **Pinch-zoom** partly works but snaps back to the default zoom on release.
+- **Right-click: fixed, confirmed on the Duo.** A two-finger tap in the city view drops the build tool and undoes a drag in progress (`screen_city_t::handle_two_finger_gesture`); two-finger pan/pinch keeps it. Covered by `tests/278_touch_two_finger_cancel.js`, using the `__test_touch_down/move/up` helpers in `src/js/js_test_game.cpp` (not valid UTF-8: edit it byte-wise).
+- **Pinch-zoom: fixed, confirmed on the Duo** (with "Enable zoom" on). Two causes:
+  - Zoom was off by default (`gameui_zoom`), and with it off `zoom_t::update_value` resets the zoom every frame. It now defaults to on for iOS only (`src/game/game_config.cpp`); desktop and `--og` keep it off. The fresh-install default is untested on a device.
+  - `get_latest_touch()` returned the same finger as `get_earliest_touch()` when both landed in the same millisecond (one iOS touch event), so the pinch measured 0 and never zoomed. Covered by `tests/279_touch_pinch_zoom_holds.js`.
 
 Simulator (iPhone 18 Pro): reaches the main menu and a game can be played with tap and drag.
 
@@ -80,6 +82,7 @@ xcrun devicectl device install app --device <DUO_UDID> build-ios-device/Debug-ip
 xcrun devicectl device process launch --device <DUO_UDID> --terminate-existing <BUNDLE_ID>
 ```
 Installing over the existing app keeps its `Documents/PharaohData`.
+When copying game data from a desktop install, leave out `akhenaten.conf`: the game saves every option in it, so a desktop copy overrides the iOS defaults (e.g. zoom on).
 
 ### Standard checks
 - After every configure (dependency sub-builds can fail WITHOUT stopping configure):
@@ -110,8 +113,18 @@ Installing over the existing app keeps its `Documents/PharaohData`.
 ## Next steps
 1. ~~Simulator runtime, first launch, platform layer, data into Simulator~~: done.
 2. ~~Device build~~: done; runs on the Duo.
-3. **Saved-game load crash on the Duo**: pull the crash reports and fix.
-4. **Playability**: right-click (long-press or two-finger tap), so placement can be cancelled; pinch-zoom that keeps its zoom level; check drag-to-pan. Existing touch layer: `src/input/touch.cpp` (used by Vita/Switch/Android). Handle SDL window resize on fold/unfold.
-5. Log file on iOS; virtual keyboard (stubs today); Release build for the device (smaller frames, faster).
-6. Mac data folder decision, then rerun the macOS integral suite.
-7. Compare engine bugs with the Mac build; check or report them upstream. Optional: offer the iOS changes upstream as a PR (the MuJS fix is useful on its own).
+3. **TODO later (Brendan may prototype here): original Pharaoh saves load corrupted. Upstream engine bug, not iOS-specific.**
+   - Repro saves: `~/Games/Pharaoh/Save/Retryohep/Meidum 7.sav` and `Bahariya Oasis Victory.sav`.
+   - On the Mac: Meidum 7 segfaults in `building_stonemason_guild::spawn_figure` on the first tick after loading. Bahariya loads.
+   - On the Duo (Debug build), both trip `assert("pool_no_allocation")` in `building_temple_complex::on_post_load`; the decorative-tiles pool holds 2.
+   - Load log for both: `runtime_data overflow: BUILDING_{BANDSTAND,BOOTH,JUGGLER_SCHOOL,CONSERVATORY} wrote 212 bytes` (`city_buildings.cpp:446`, limit 186), `id < MAX_BUILDINGS` (`city_buildings.cpp:29`), and `No building model registered for type 57/90/187/188/211/212`.
+   - `building_entertainment::bind_dynamic` binds only 130 bytes, so the stream is most likely already misaligned before these records. Find the first bad building record.
+   - Upstream `master` had no fix as of 2026-11-07 (branch level with `origin/master` at `24ce892ec`).
+   - Repro without the UI: a throwaway test in `tests/` calling `__game_load_savegame('Retryohep/Meidum 7.sav')` then `__test_pump_frames(30)`, run with real data (`--nointro`, no `--no-resource`). The crash handler prints the backtrace to the game log.
+   - Untested: saves made by Akhenaten itself, loaded on the Duo.
+4. **Playability, remaining**: other places that need right-click besides the city view (overlays, military, editor, info panels); fold/unfold window resize on the Duo; UI scale on the small outer screen.
+5. **Ferry-boat assert** (`figure_ferry_boat::figure_action`, `allow_move_type == EMOVE_WATER`) seen in a new game on the Duo; Debug builds only, not investigated.
+6. **Device build type**: Release/RelWithDebInfo for the Duo (asserts off like desktop, smaller stack frames, faster).
+7. Log file on iOS; virtual keyboard (stubs today).
+8. Lasting UIScene fix in SDL, if the SDK-26 stamp stops working or fold/unfold needs it.
+9. Compare engine bugs with the Mac build; check or report them upstream. Optional: offer the iOS changes upstream as a PR (the MuJS fix and the touch fixes are useful on their own).

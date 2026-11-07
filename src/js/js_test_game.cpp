@@ -145,6 +145,7 @@
 #include "empire/empire.h"
 #include "widget/widget_sidebar.h"
 
+#include "graphics/screen.h"
 #include <SDL.h>
 #include <algorithm>
 #include <vector>
@@ -295,6 +296,32 @@ void __test_mouse_right_click(int x, int y) {
     do_synthetic_click(SDL_BUTTON_RIGHT, x, y);
 }
 ANK_FUNCTION_2(__test_mouse_right_click);
+
+static void push_finger(Uint32 type, int finger, int x, int y) {
+    SDL_Event e{};
+    e.type = type;
+    e.tfinger.touchId = 0x7e57; // not the macOS trackpad, which platform_touch_start ignores
+    e.tfinger.fingerId = finger;
+    e.tfinger.x = (float)x / (float)screen_width();
+    e.tfinger.y = (float)y / (float)screen_height();
+    e.tfinger.pressure = 1.0f;
+    SDL_PushEvent(&e);
+}
+
+void __test_touch_down(int finger, int x, int y) {
+    push_finger(SDL_FINGERDOWN, finger, x, y);
+}
+ANK_FUNCTION_3(__test_touch_down);
+
+void __test_touch_move(int finger, int x, int y) {
+    push_finger(SDL_FINGERMOTION, finger, x, y);
+}
+ANK_FUNCTION_3(__test_touch_move);
+
+void __test_touch_up(int finger, int x, int y) {
+    push_finger(SDL_FINGERUP, finger, x, y);
+}
+ANK_FUNCTION_3(__test_touch_up);
 
 void __test_signal_ready() {
     g_test_signal_ready = true;

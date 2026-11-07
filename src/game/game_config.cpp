@@ -9,10 +9,18 @@
 #include "core/svector.h"
 #include "js/js_game.h"
 #include "dev/debug.h"
+#include "platform/platform.h"
 
 #include <SDL.h>
 
 static const char* CONF_FILENAME = "akhenaten.conf";
+
+// Pinch is the only way to zoom on a touchscreen, so zoom starts enabled there.
+#if defined(GAME_PLATFORM_IOS)
+static constexpr bool k_zoom_default = true;
+#else
+static constexpr bool k_zoom_default = false;
+#endif
 
 void ANK_REGISTER_CONFIG_ITERATOR(config_load_game_settings) {
     game_features::load();
@@ -38,7 +46,7 @@ namespace game_features {
     game_feature gameui_show_current_select_tile{ "gameui_show_current_select_tile", "#TR_CONFIG_SHOW_CURRENT_SELECT_TILE", false, false };
     game_feature gameui_show_input_near_cursor{ "gameui_show_input_near_cursor", "#TR_CONFIG_SHOW_INPUT_NEAR_CURSOR", false, false };
     game_feature gameui_road_preview_in_map_order{ "gameui_road_preview_in_map_order", "#TR_CONFIG_ROAD_PREVIEW_IN_MAP_ORDER", false, false };
-    game_feature gameui_zoom{ "gameui_zoom", "#TR_CONFIG_ZOOM_STEPPED", false, false };
+    game_feature gameui_zoom{"gameui_zoom", "#TR_CONFIG_ZOOM_STEPPED", k_zoom_default, false};
     game_feature gameui_smooth_zoom{ "gameui_smooth_zoom", "#TR_CONFIG_SMOOTH_ZOOM", false, false };
     game_feature gameui_complete_ratings_columns{ "gameui_complete_ratings_columns", "#TR_CONFIG_COMPLETE_RATING_COLUMNS", false, false };
     game_feature gameui_highlight_legions{ "gameui_highlight_legions", "#TR_CONFIG_HIGHLIGHT_LEGIONS", false, false };
