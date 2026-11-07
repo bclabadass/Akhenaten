@@ -14,9 +14,17 @@ int platform_sdl_version_at_least(int major, int minor, int patch);
 #define GAME_PLATFORM_WIN64
 #define GAME_PLATFORM_NAME "win64"
 #elif defined(__APPLE_CC__) || defined(__APPLE__) || defined(__APPLE_CPP__) || defined(__MACOS_CLASSIC__)
+#include <TargetConditionals.h>
 #define GAME_PLATFORM_UNIX
+// iOS keeps GAME_PLATFORM_MACOSX: it shares those paths (SDL pref dir, malloc_size, no gpupixel).
+// GAME_PLATFORM_IOS marks only what differs.
 #define GAME_PLATFORM_MACOSX
+#if TARGET_OS_IPHONE
+#define GAME_PLATFORM_IOS
+#define GAME_PLATFORM_NAME "ios"
+#else
 #define GAME_PLATFORM_NAME "macosx"
+#endif
 #elif defined(__FreeBSD__) || defined(__OpenBSD__)
 #define GAME_PLATFORM_UNIX
 #define GAME_PLATFORM_XBSD
@@ -145,9 +153,17 @@ struct platform_t {
 #else
 		return false;
 #endif
-	}
+    }
 
-	inline constexpr bool is_switch() const {
+    inline constexpr bool is_ios() const {
+#ifdef GAME_PLATFORM_IOS
+        return true;
+#else
+        return false;
+#endif
+    }
+
+    inline constexpr bool is_switch() const {
 #ifdef GAME_PLATFORM_SWITCH
         return true;
 #else
@@ -155,50 +171,50 @@ struct platform_t {
 #endif
     }
 
-	inline constexpr bool is_linux() const {
+    inline constexpr bool is_linux() const {
 #ifdef GAME_PLATFORM_LINUX
 		return true;
 #else
 		return false;
 #endif
-	}
+    }
 
-	inline constexpr bool is_steamdeck() const {
+    inline constexpr bool is_steamdeck() const {
 #ifdef GAME_PLATFORM_STEAMDECK
 		return true;
 #else
 		return false;
 #endif
-	}
+    }
 
-	bool file_manager_should_case_correct_file();
+    bool file_manager_should_case_correct_file();
 
-	uint32_t sdl_init_flags();
+    uint32_t sdl_init_flags();
 
-	void post_hint_init();
+    void post_hint_init();
 
-	void setup_begin();
+    void setup_begin();
 
-	void init_callback();
+    void init_callback();
 
-	void per_frame_callback();
+    void per_frame_callback();
 
-	int poll_event(CoreEvent* event);
+    int poll_event(CoreEvent* event);
 
-	pcstr request_initial_data_directory();
+    pcstr request_initial_data_directory();
 
-	void append_startup_log(pcstr message);
+    void append_startup_log(pcstr message);
 
-	void hide_startup_log();
+    void hide_startup_log();
 
-	bool run_main_loop(platform_pump_frame_cb pump_frame, platform_should_continue_cb should_continue);
+    bool run_main_loop(platform_pump_frame_cb pump_frame, platform_should_continue_cb should_continue);
 
-	pcstr user_directory();
+    pcstr user_directory();
 
-	void screen_warp_mouse(int *x, int *y);
+    void screen_warp_mouse(int* x, int* y);
 
-	void show_virtual_keyboard(const uint8_t *text, int max_length);
-	void hide_virtual_keyboard();
+    void show_virtual_keyboard(const uint8_t* text, int max_length);
+    void hide_virtual_keyboard();
 };
 
 extern platform_t platform;

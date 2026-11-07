@@ -1113,9 +1113,15 @@ if(APPLE)
     set(MACOSX_BUNDLE_LONG_VERSION_STRING ${MACOSX_BUNDLE_BUNDLE_VERSION})
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${MACOSX_BUNDLE_BUNDLE_VERSION})
 
+    if(IOS)
+        set(GAME_INFO_PLIST "${PROJECT_SOURCE_DIR}/res/ios/Info.plist")
+    else()
+        set(GAME_INFO_PLIST "${PROJECT_SOURCE_DIR}/res/macos/Info.plist")
+    endif()
+
     set_target_properties(${GAME} PROPERTIES
         MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/res/macos/Info.plist"
+        MACOSX_BUNDLE_INFO_PLIST "${GAME_INFO_PLIST}"
         OSX_DEPLOYMENT_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
 
     set(DIRS "")
@@ -1207,6 +1213,16 @@ if(IOS)
         "-framework GameController"
         z
     )
+
+    # Stopgap: UIKit traps at launch on binaries stamped with the iOS 27 SDK that don't adopt
+    # UIScene, and SDL 2.32 doesn't. Remove once SDL supports scenes.
+    if(CMAKE_OSX_SYSROOT MATCHES "iphonesimulator")
+        set(GAME_IOS_LINK_PLATFORM ios-simulator)
+    else()
+        set(GAME_IOS_LINK_PLATFORM ios)
+    endif()
+    target_link_options(${GAME} PRIVATE
+        "LINKER:-platform_version,${GAME_IOS_LINK_PLATFORM},${CMAKE_OSX_DEPLOYMENT_TARGET},26.0")
 elseif(APPLE)
     target_link_libraries(${GAME}
         "-framework Cocoa"

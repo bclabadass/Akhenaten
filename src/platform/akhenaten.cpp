@@ -323,7 +323,8 @@ static void setup() {
     // Skip in integral-tests mode: the dialog would block forever in a headless CI runner,
     // and SDL_CreateRenderer there fails because the dummy video driver doesn't support
     // SDL_RENDERER_ACCELERATED, which is what options_window.cpp requests.
-    const bool support_window_options = !(platform.is_android() || platform.is_emscripten() || g_args.is_integral_tests());
+    const bool support_window_options
+      = !(platform.is_android() || platform.is_ios() || platform.is_emscripten() || g_args.is_integral_tests());
     const bool pending_installer = !skip_data_bootstrap && !g_args.no_data_check()
                                    && g_args.get_extract_installer().empty()
                                    && !innoextract::installer_pending_bootstrap().empty()
@@ -344,6 +345,15 @@ static void setup() {
 
     while (!pre_init(g_args.get_data_directory())) {
             platform.append_startup_log("Startup: folder validation failed");
+#if defined(GAME_PLATFORM_IOS)
+            // No folder picker or options window to retry with: this loop would never end.
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Pharaoh data required",
+              "Akhenaten needs the original Pharaoh game files.\n\n"
+              "Copy them into the PharaohData folder in Files > On My iPhone > Akhenaten, "
+              "then open the app again.",
+              nullptr);
+            exit(2);
+#endif
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Pharaoh data required",
               "Akhenaten needs the original Pharaoh game files (campaign.txt).\n\n"
               "A full Pharaoh + Cleopatra install is recommended.\n"

@@ -1,6 +1,6 @@
 #include "platform.h"
 
-#if defined(GAME_PLATFORM_MACOSX)
+#if defined(GAME_PLATFORM_MACOSX) && !defined(GAME_PLATFORM_IOS)
 
 #include "core/bstring.h"
 #include "core/log.h"
