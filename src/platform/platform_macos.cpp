@@ -60,9 +60,7 @@ void platform_resolve_user_directory(bstring512& dir) {
 }
 
 void platform_t::open_url(pcstr url, pcstr prefix) {
-    bstring256 command("open \"", url, "\" &");
-    [[maybe_unused]] auto result = ::system(command.c_str());
-    //result;
+    SDL_OpenURL(url);
 }
 
 pcstr platform_t::get_steam_path() {
