@@ -1152,7 +1152,12 @@ if(APPLE)
         OSX_DEPLOYMENT_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
 
     if(IOS)
+        # Source artwork: res/ios/AppIcon.svg (the PNG in the catalog is rendered from it).
+        set(GAME_IOS_ASSETS "${PROJECT_SOURCE_DIR}/res/ios/Assets.xcassets")
+        target_sources(${GAME} PRIVATE "${GAME_IOS_ASSETS}")
+        set_source_files_properties("${GAME_IOS_ASSETS}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
         set_target_properties(${GAME} PROPERTIES
+            XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon"
             XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "${GAME_IOS_BUNDLE_ID}")
         if(GAME_IOS_DEVELOPMENT_TEAM)
             set_target_properties(${GAME} PROPERTIES
