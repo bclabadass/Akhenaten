@@ -1790,6 +1790,15 @@ static void cstmlist(JF, js_Ast* list) {
 /* Analyze */
 
 static void analyze(JF, js_Ast* node) {
+    // Iterate lists instead of recursing on ->b; see jsP_foldconst.
+    if (node->type == AST_LIST) {
+        for (; node; node = node->b) {
+            if (node->a)
+                analyze(J, F, node->a);
+        }
+        return;
+    }
+
     if (isfun(node->type)) {
         F->lightweight = 0;
         return; /* don't scan inner functions */
@@ -1843,6 +1852,15 @@ static void cparams(JF, js_Ast* list) {
 }
 
 static void cvardecs(JF, js_Ast* node) {
+    // Iterate lists instead of recursing on ->b; see jsP_foldconst.
+    if (node->type == AST_LIST) {
+        for (; node; node = node->b) {
+            if (node->a)
+                cvardecs(J, F, node->a);
+        }
+        return;
+    }
+
     if (isfun(node->type))
         return; /* stop at inner functions */
 

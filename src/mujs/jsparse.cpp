@@ -1314,6 +1314,16 @@ static int jsP_foldconst(js_Ast* node) {
     if (node->type == EXP_NUMBER)
         return 1;
 
+    // Lists chain through ->b: recursing on it costs a frame per element, which overflows
+    // the 1 MB iOS main-thread stack on long scripts.
+    if (node->type == AST_LIST) {
+        for (; node; node = node->b) {
+            if (node->a)
+                jsP_foldconst(node->a);
+        }
+        return 0;
+    }
+
     a = node->a ? jsP_foldconst(node->a) : 0;
     b = node->b ? jsP_foldconst(node->b) : 0;
     if (node->c)

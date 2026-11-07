@@ -10,7 +10,10 @@
 #include "js/js_game.h"
 #include "regexp.h"
 
+#include <SDL.h>
+
 #include <cstring>
+#include <string>
 
 namespace {
 
@@ -158,6 +161,42 @@ static bool mujs_self_test_long_es_key(js_State *J)
     return hits == 1;
 }
 
+struct long_list_parse_job {
+    js_State* J;
+    const char* source;
+    int error;
+};
+
+static int mujs_self_test_long_list_parse_thread(void* data) {
+    auto* job = static_cast<long_list_parse_job*>(data);
+    job->error = js_ploadstring(job->J, "[mujs_self_tests_long_list]", job->source);
+    js_pop(job->J, 1);
+    return 0;
+}
+
+/** Parse and compile long AST lists (statements, array elements) on a small stack.
+ *  Walking lists recursively costs a frame per element; that overflowed the 1 MB iOS
+ *  main-thread stack but not 8 MB desktop stacks, so desktop runs need the small stack to
+ *  catch it. The caller blocks until the thread finishes, so J is never shared. */
+static bool mujs_self_test_long_list_parse(js_State* J) {
+    constexpr int k_elements = 20000;
+    std::string source = "var holes = [";
+    source.append(k_elements, ',');
+    source += "];\n";
+    source.append(k_elements, ';');
+
+    long_list_parse_job job{J, source.c_str(), -1};
+    SDL_Thread* thread
+      = SDL_CreateThreadWithStackSize(mujs_self_test_long_list_parse_thread, "mujs_long_list", 256 * 1024, &job);
+    if (!thread) {
+        logs::info("mujs_self_test long_list_parse skipped: no thread (%s)", SDL_GetError());
+        return true;
+    }
+    SDL_WaitThread(thread, nullptr);
+    verify_no_crash_var(job.error == 0, "mujs_self_test long_list_parse: load failed");
+    return job.error == 0;
+}
+
 } // namespace
 
 void mujs_run_self_tests(js_State *J)
@@ -175,6 +214,7 @@ void mujs_run_self_tests(js_State *J)
         "return __mujs_self_test_cptr.u8_a === 7 && __mujs_self_test_cptr.u8_b === 42; })()");
     mujs_self_test_multi_es_modifiers(J);
     mujs_self_test_long_es_key(J);
+    mujs_self_test_long_list_parse(J);
 
     {
         js_frame_zone zone(J);

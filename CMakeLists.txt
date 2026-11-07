@@ -1039,7 +1039,7 @@ endif()
 
 # Standalone in-place update helper (desktop only). Game downloads/extracts, then
 # launches this binary and exits so files can be overwritten.
-if(NOT PLATFORM_ANDROID AND NOT WIN_EMSCRIPTEN AND NOT EMSCRIPTEN)
+if(NOT PLATFORM_ANDROID AND NOT WIN_EMSCRIPTEN AND NOT EMSCRIPTEN AND NOT IOS)
     add_executable(akhenaten-updater "${PROJECT_SOURCE_DIR}/tools/akhenaten-updater/main.cpp")
     set_target_properties(akhenaten-updater PROPERTIES
         CXX_STANDARD 17
@@ -1115,6 +1115,10 @@ if(APPLE)
 
     if(IOS)
         set(GAME_INFO_PLIST "${PROJECT_SOURCE_DIR}/res/ios/Info.plist")
+        # A free (Personal Team) Apple ID can only sign a bundle ID no other team has registered.
+        set(GAME_IOS_BUNDLE_ID "${MACOSX_BUNDLE_GUI_IDENTIFIER}" CACHE STRING "iOS bundle identifier")
+        set(GAME_IOS_DEVELOPMENT_TEAM "" CACHE STRING "Apple team ID for device signing; empty leaves signing unset")
+        set(MACOSX_BUNDLE_GUI_IDENTIFIER "${GAME_IOS_BUNDLE_ID}")
     else()
         set(GAME_INFO_PLIST "${PROJECT_SOURCE_DIR}/res/macos/Info.plist")
     endif()
@@ -1123,6 +1127,17 @@ if(APPLE)
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_INFO_PLIST "${GAME_INFO_PLIST}"
         OSX_DEPLOYMENT_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
+
+    if(IOS)
+        set_target_properties(${GAME} PROPERTIES
+            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "${GAME_IOS_BUNDLE_ID}")
+        if(GAME_IOS_DEVELOPMENT_TEAM)
+            set_target_properties(${GAME} PROPERTIES
+                XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${GAME_IOS_DEVELOPMENT_TEAM}"
+                XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
+                XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Apple Development")
+        endif()
+    endif()
 
     set(DIRS "")
     set(LIBS "")
