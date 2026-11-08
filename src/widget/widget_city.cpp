@@ -116,7 +116,24 @@ static tile2i city_planner_cursor_tile_from_mouse() {
     if (is_in_construction_buttons_region({m.x, m.y})) {
         return tile2i::invalid;
     }
+    // Touch places a non-draggable building on the tile picked by the first tap, while the
+    // confirming tap may land beside it. Check and preview the picked tile, not the last finger.
+    if (g_screen_city.selected_tile.grid_offset() > 0 && !g_city_planner.draggable()) {
+        return g_screen_city.selected_tile;
+    }
     return g_screen_city.update_city_view_coords({m.x, m.y});
+}
+
+// Touch has no hover, so with no finger down and nothing picked the pointer is just where the
+// last finger lifted, often beside the building just placed; a ghost there looks like a second one.
+static bool touch_build_preview_idle() {
+    if (!platform.is_ios() || g_city_planner.in_progress) {
+        return false;
+    }
+    if (g_screen_city.selected_tile.grid_offset() > 0) {
+        return false;
+    }
+    return !get_earliest_touch_raw()->in_use;
 }
 
 tile2i screen_city_t::update_city_view_coords(vec2i pixel) {
@@ -564,7 +581,7 @@ void screen_city_t::draw_without_overlay(painter &ctx, int selected_figure_id) {
 
     // Draw the city planner overlay (construction previews, ghost buildings) if no figure is selected
     // When a figure is selected, we skip the planner drawing to avoid visual clutter
-    if (!selected_figure_id) {
+    if (!selected_figure_id && !touch_build_preview_idle()) {
         g_city_planner.update(city_planner_cursor_tile_from_mouse());
         g_city_planner.draw(ctx);
     }
@@ -1016,8 +1033,10 @@ void screen_city_t::draw_with_overlay(painter &ctx, int selected_figure_id) {
 
     ImageDraw::apply_render_commands(ctx, "draw_ornaments_figures_overlay");
 
-    g_city_planner.update(city_planner_cursor_tile_from_mouse());
-    g_city_planner.draw(ctx);
+    if (!touch_build_preview_idle()) {
+        g_city_planner.update(city_planner_cursor_tile_from_mouse());
+        g_city_planner.draw(ctx);
+    }
 
     draw_building_road_access_marker(ctx);
     draw_recorded_delivery_paths(ctx);
@@ -1317,6 +1336,7 @@ void screen_city_t::handle_first_touch(tile2i tile) {
 
     if (touch_was_click(first) && first->has_ended && capture_input
         && has_confirmed_construction(selected_tile, tile, size)) {
+        g_city_planner.update_hover(selected_tile);
         g_city_planner.construction_start(selected_tile);
         build_move(selected_tile);
         build_end();
