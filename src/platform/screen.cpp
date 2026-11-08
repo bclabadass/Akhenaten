@@ -210,6 +210,18 @@ bool platform_screen_t::resize(int pixel_width, int pixel_height, int save) {
     set_scale_percentage(SDL_min(requested, max_fit_scale), pixel_width, pixel_height);
 #endif
 
+#if defined(GAME_PLATFORM_IOS)
+    // iPhone Duo inner screen: a 3x display, so 67% draws the game at about 2x and fits more city.
+    // Only applied on crossing between the screens, so the Display options slider keeps working.
+    static int last_unfolded = -1;
+    const int short_side = SDL_min(pixel_width, pixel_height);
+    const int unfolded = (short_side >= 600 && short_side < 700) ? 1 : 0;
+    if (unfolded != last_unfolded) {
+        last_unfolded = unfolded;
+        set_scale_percentage(unfolded ? 67 : 100, pixel_width, pixel_height);
+    }
+#endif
+
     int logical_width = scale_pixels_to_logical(pixel_width);
     int logical_height = scale_pixels_to_logical(pixel_height);
 
