@@ -264,13 +264,11 @@ function mission_end_show(state) {
     if (!mission_has_post_victory_choice(completed_for_video)
         && mission_end_compute_next_scenario_id(completed_for_video) == -1
         && scenario.scmode == e_scenario_normal) {
-        __game_victory_video_show("smk/win_game.smk", 400, 292, "mission_end_after_video")
+        __game_victory_video_show("BINKS/High/win_grand_big.bik", 560, 333, "mission_end_after_video")
         return
     }
 
-    game_features.gameopt_victory_video = !game_features.gameopt_victory_video
-    var file = game_features.gameopt_victory_video ? "smk/victory_balcony.smk" : "smk/victory_senate.smk"
-    __game_victory_video_show(file, 400, 292, "mission_end_after_video")
+    mission_end_open_won_dialog()
 }
 
 function mission_end_after_video() {
