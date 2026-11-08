@@ -123,27 +123,33 @@ When copying game data from a desktop install, leave out `akhenaten.conf`: the g
 - Saves made with no family chosen land loose in `Save/`, where the Load dialog (it lists `Save/<family>/`) never shows them.
 
 ## Next steps
-1. ~~Simulator runtime, first launch, platform layer, data into Simulator~~: done.
-2. ~~Device build~~: done; runs on the Duo.
-3. **TODO later (Brendan may prototype here): original Pharaoh saves load corrupted. Upstream engine bug, not iOS-specific.**
+
+### Open to-dos (in order)
+1. **Release-type device build (planned for 2026-11-08 evening).** Release/RelWithDebInfo for the Duo: asserts off like desktop (avoids the ferry assert below), smaller stack frames, faster. Signing on the Duo runs out **2026-11-14**; any install resets it. Also drops the temporary victory diagnostic still in the Duo's current build (a `[victory-diag]` log line every 15 in-game days; not in the repo).
+2. **Render the unfolded screen at 2x instead of 3x** (Brendan's idea, 2026-11-08). Today the unfolded window is 951x669 points (render canvas 981x690), shown at 3x on the 2853x2007-pixel display. At 2x the layout would be about 1426x1003 (2853/2 x 2007/2): more of the city on screen, smaller panels. The game's display scale (`--display-scale`, factor 0.5-5) at about 0.67 should give that canvas. Try it fixed first to judge readability, then make it apply only when unfolded; the outer screen (678x466, canvas 699x481) looks good as it is.
+3. **Ferry-boat assert** (`figure_ferry_boat::figure_action`, `allow_move_type == EMOVE_WATER`), seen once in a new game on the Duo; Debug builds only. Not reproduced on the Mac: the seven ferry tests and two Duo saves (no ferries in them) never trip it, and nothing in the code writes a ferry boat's move type after `on_create`. A local, uncommitted `[ferry-diag]` log line in `figure_ferry_boat.cpp` (before the assert) is in the Duo build, so if it happens again `akhenaten-log-previous.txt` shows the boat's state.
+4. **Mission score overflows with negative funds** (upstream). Narmer's Perwadjyt record: funds -5514, score 1073740792. Look at `city_make_mission_result` / `mission_won_calc_score`. Doesn't affect progression.
+5. **Original Pharaoh saves load corrupted** (upstream; Brendan may prototype here).
    - Repro saves: `~/Games/Pharaoh/Save/Retryohep/Meidum 7.sav` and `Bahariya Oasis Victory.sav`.
    - On the Mac: Meidum 7 segfaults in `building_stonemason_guild::spawn_figure` on the first tick after loading. Bahariya loads.
    - On the Duo (Debug build), both trip `assert("pool_no_allocation")` in `building_temple_complex::on_post_load`; the decorative-tiles pool holds 2.
-   - Load log for both: `runtime_data overflow: BUILDING_{BANDSTAND,BOOTH,JUGGLER_SCHOOL,CONSERVATORY} wrote 212 bytes` (`city_buildings.cpp:446`, limit 186), `id < MAX_BUILDINGS` (`city_buildings.cpp:29`), and `No building model registered for type 57/90/187/188/211/212`.
+   - Load log for both: `runtime_data overflow: BUILDING_{BANDSTAND,BOOTH,JUGGLER_SCHOOL,CONSERVATORY} wrote 212 bytes` (`city_buildings.cpp`, limit 186), `id < MAX_BUILDINGS` (`city_buildings.cpp:29`), and `No building model registered for type 57/90/187/188/211/212`.
    - `building_entertainment::bind_dynamic` binds only 130 bytes, so the stream is most likely already misaligned before these records. Find the first bad building record.
-   - Upstream `master` had no fix as of 2026-11-07 (branch level with `origin/master` at `24ce892ec`).
+   - The port's own saves log the same `BOOTH` / `JUGGLER_SCHOOL wrote 212 bytes` overflow on load, so it isn't only original saves; nothing visible breaks yet.
+   - Upstream `master` had no fix as of 2026-11-08.
    - Repro without the UI: a throwaway test in `tests/` calling `__game_load_savegame('Retryohep/Meidum 7.sav')` then `__test_pump_frames(30)`, run with real data (`--nointro`, no `--no-resource`). The crash handler prints the backtrace to the game log.
-   - Untested: saves made by Akhenaten itself, loaded on the Duo.
-4. **Playability, remaining** (Brendan, 2026-11-07: "generally playable"; Nubt, Thinis and Perwadjyt completed on the Duo):
-   - ~~Destroy tool destroying on a two-finger cancel~~: fixed. Measuring a clear-land drag marks its buildings DELETED_BY_PLAYER; cancel never restored them and the daily `building_update_state` demolished them, also while the selection was open (on touch it stays open between taps). Upstream bug, also hits a mouse right-click cancel. Test 287.
-   - People moving out / low sentiment: checked 2026-11-08 with Narmer's `Thinis 2` and `Perwajyt 2` on the Mac; same behaviour, so not the port. Thinis 2 emigrates because of unemployment (24%, `low_mood_cause` = no jobs; migration -40% until it drops to ~10%). Perwajyt 2 is healthy (sentiment 98-100, no unemployment). The cause shows in the Population advisor (`city_migration_t::determine_reason()` only runs when the advisors open). Revisit only if a save shows emigration with low unemployment and food/taxes/wages fine.
-   - ~~Perwadjyt victory not reaching the next mission~~: fixed. The victory check emitted `event_update_victory_state` (which only queues) and decided at once, so it used the previous day's mission reasons; straight after a load there were none, which counted as all met, and a false victory dialog came up and then quietly went away (Perwajyt 2 hadn't stored the pottery yet). The check now waits until the reasons have been processed once (test 288). Confirmed on the Duo with Perwajyt 2a: dialog, mission-won screen, win saved to progress, next mission's briefing (scenario 3). The victory videos (`smk/victory_*.smk`) don't exist in Pharaoh data and are skipped.
-   - Loading the port's own saves logs `runtime_data overflow: BUILDING_BOOTH / BUILDING_JUGGLER_SCHOOL wrote 212 bytes` (limit 186), the same overflow as the original-save TODO above; nothing visible breaks yet.
-   - **Mission score overflows with negative funds** (upstream): Narmer's Perwadjyt record has funds -5514 and score 1073740792. Look at `city_make_mission_result` / `mission_won_calc_score`. Doesn't affect progression.
-   - Narmer's Thinis win (lost to the Load-dialog bug) was added on 2026-11-08 by recording it from `Thinis V.svx` on the Mac (real stats: 34 months, pop 710, score 2424) and copying `progress.dat` to the Duo.
-   - **Idea (Brendan, 2026-11-08): render the inner screen at 2x instead of 3x.** Today the unfolded window is 951x669 points (render canvas 981x690), shown at 3x on the 2853x2007-pixel display. At 2x the layout would be about 1426x1003 (2853/2 x 2007/2): more of the city on screen, smaller panels. The game's display scale (`--display-scale`, 50-500%) at roughly 67% should give that canvas; it would need to apply only when unfolded, since the outer screen (678x466, canvas 699x481) looks good as it is.
-5. **Ferry-boat assert** (`figure_ferry_boat::figure_action`, `allow_move_type == EMOVE_WATER`) seen in a new game on the Duo; Debug builds only. Not reproduced on the Mac: the seven ferry tests and two Duo saves (no ferries in them) never trip it, and nothing in the code writes a ferry boat's move type after `on_create`. A local, uncommitted `[ferry-diag]` log line in `figure_ferry_boat.cpp` (before the assert) is in the Duo build, so if it happens again `akhenaten-log-previous.txt` will show the boat's state.
-6. **Device build type (planned for 2026-11-08 evening)**: Release/RelWithDebInfo for the Duo (asserts off like desktop, smaller stack frames, faster). Signing on the Duo runs out 2026-11-14; this install resets it. Also drops the temporary victory diagnostic still in the Duo's current build.
-7. ~~Log file on iOS; virtual keyboard~~: done, both confirmed on the Duo.
-8. Potential future update: move the engine to SDL3 (drops the SDL2 UIScene patch).
-9. Compare engine bugs with the Mac build; check or report them upstream. Optional: offer the iOS changes upstream as a PR (the MuJS fix and the touch fixes are useful on their own).
+6. **Victory videos are missing** (upstream, harmless). The victory screen asks for `smk/victory_*.smk` / `smk/win_game.smk`; Pharaoh's videos are `.bik` in `BINKS/`, so the video is skipped and the mission-won screen follows.
+7. **Later: move the engine to SDL3** (drops the SDL2 UIScene patch).
+8. **Optional: upstream.** Compare engine bugs with the Mac build, report them, or offer fixes as PRs. Useful on their own: the clear-land cancel (test 287), one failing script no longer stopping all scripts (282), the victory check (288), file remove/rename paths (284), the well script (283), the MuJS long-list stack fix, and the touch fixes.
+
+### Watch for
+- **Emigration with nothing obvious wrong.** Checked 2026-11-08 with Narmer's `Thinis 2` and `Perwajyt 2` on the Mac: same behaviour as the Duo, and explained (Thinis 2: 24% unemployment, `low_mood_cause` = no jobs, migration -40% until it drops to ~10%; Perwajyt 2 healthy). The cause shows in the Population advisor (`city_migration_t::determine_reason()` only runs when the advisors open). Revisit only if a save shows emigration with low unemployment and food, taxes and wages fine.
+- **A clearly earned victory that doesn't trigger.** Narmer's `Perwajyt 2a` failed once on the Duo with the victory fix already installed, then worked on the next try (and always on the Mac); cause not found.
+
+### Done (Brendan, 2026-11-07/08: "generally playable"; Nubt, Thinis and Perwadjyt completed on the Duo)
+- Simulator and device builds; runs natively on the Duo, fold/unfold resizes; UIScene via the SDL2 patch.
+- Touch: two-finger tap = right-click everywhere (280); two-finger cancel and pinch zoom (278, 279); placement checks and previews the picked tile (285); a tap beside a red ghost moves it, for booths at crossroads (285); clear-land cancel keeps buildings (287).
+- Scripts: one failing handler no longer stops all scripts (282); well monthly update fixed (283).
+- Campaign: progress saves on iOS (284); wins count for games opened from Load/Continue (286); no false victory after a load (288). Narmer's Thinis win was added on 2026-11-08 by recording it from `Thinis V.svx` on the Mac (real stats: 34 months, pop 710, score 2424) and copying `progress.dat` to the Duo.
+- Files: deleting saves works (284); test saves go to the `Integral Tests` family (281).
+- iOS: log file kept across launches and flushed on abort/background; on-screen keyboard; settings persist; zoom on by default; app icon.
