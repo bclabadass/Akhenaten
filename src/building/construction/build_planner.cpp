@@ -1048,6 +1048,9 @@ void build_planner::construction_start(tile2i tile) {
 void build_planner::construction_cancel(bool release_sidebar) {
     map_property_clear_constructing_and_deleted();
     if (in_progress && draggable()) {
+        // Measuring a clear-land drag marks its buildings DELETED_BY_PLAYER; without this the next
+        // daily state update demolishes them even though the drag was cancelled.
+        game_undo_restore_building_state();
         game_undo_restore_map(1);
         in_progress = false;
     } else {

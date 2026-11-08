@@ -2,6 +2,7 @@
 
 #include "city/city.h"
 #include "game/undo.h"
+#include "building/construction/build_planner.h"
 #include "core/custom_span.hpp"
 #include "core/profiler.h"
 #include "city/city_warnings.h"
@@ -304,6 +305,9 @@ void building_update_state() {
     bool water_routes_recalc = false;
     bool canals_recalc = false;
     bool buildings_removed = false;
+    // An open clear-land selection marks its buildings DELETED_BY_PLAYER only to preview the
+    // demolition; it may still be cancelled (on touch it stays open between taps).
+    const bool clear_land_previewing = g_city_planner.in_progress && g_city_planner.build_type == BUILDING_CLEAR_LAND;
 
     for (int i = 1; i < MAX_BUILDINGS; i++) {
         building *b = &g_all_buildings[i];
@@ -312,6 +316,9 @@ void building_update_state() {
         }
 
         if (b->state != BUILDING_STATE_VALID) {
+            if (b->state == BUILDING_STATE_DELETED_BY_PLAYER && clear_land_previewing) {
+                continue;
+            }
             if (b->state == BUILDING_STATE_UNDO || b->state == BUILDING_STATE_DELETED_BY_PLAYER) {
                 const auto &params = b->dcast()->current_params();
                 canals_recalc |= params.planner_update_rule.canals;
