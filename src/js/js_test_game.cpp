@@ -128,6 +128,7 @@
 #include "content/vfs.h"
 #include "editor/editor.h"
 #include "io/gamestate/boilerplate.h"
+#include "input/scroll.h"
 #include "input/hotkey.h"
 #include "scenario/editor.h"
 #include "scenario/editor_map_meta.h"
@@ -322,6 +323,12 @@ void __test_touch_up(int finger, int x, int y) {
     push_finger(SDL_FINGERUP, finger, x, y);
 }
 ANK_FUNCTION_3(__test_touch_up);
+
+// Integral tests start with scrolling off; a test measuring drags turns it on.
+static void __test_scroll_set_input(bool enabled) {
+    g_scroll.set_mouse_input(enabled);
+}
+ANK_FUNCTION_1(__test_scroll_set_input);
 
 static void __test_js_add_event_handler(pcstr event_name, pcstr funcname) {
     js_register_event_handler(event_name, funcname);

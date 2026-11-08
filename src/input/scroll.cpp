@@ -5,6 +5,7 @@
 #include "core/speed.h"
 #include "graphics/screen.h"
 #include "graphics/view/view.h" // g_camera
+#include "graphics/view/zoom.h"
 #include "input/touch.h"
 #include "game/game_config.h"
 #include "game/game.h"
@@ -198,15 +199,17 @@ void scroll_t::drag_start(drag_source source) {
     clear_speed();
 }
 
-int scroll_t::set_speed_from_drag(bool keep_delta) {
+int scroll_t::set_speed_from_drag(bool keep_delta, type view) {
     if (!drag.active)
         return 0;
-    int delta_x = 0;
-    int delta_y = 0;
+    double delta_x = 0;
+    double delta_y = 0;
     if (!drag.is_touch) {
-        g_mouse.get_relative_state(&delta_x, &delta_y);
-        float fx = dampen_mouse_relative_pan_delta((float)delta_x);
-        float fy = dampen_mouse_relative_pan_delta((float)delta_y);
+        int mouse_x = 0;
+        int mouse_y = 0;
+        g_mouse.get_relative_state(&mouse_x, &mouse_y);
+        float fx = dampen_mouse_relative_pan_delta((float)mouse_x);
+        float fy = dampen_mouse_relative_pan_delta((float)mouse_y);
         if (drag.apply_middle_mouse_pan_speed) {
             float s = game_features::gameopt_middle_mouse_pan_speed.to_float();
             if (s < 0.f)
@@ -217,17 +220,19 @@ int scroll_t::set_speed_from_drag(bool keep_delta) {
             fx *= mul;
             fy *= mul;
         }
-        delta_x = (int)std::lround(fx);
-        delta_y = (int)std::lround(fy);
+        delta_x = std::lround(fx);
+        delta_y = std::lround(fy);
     } else {
         const touch_t* t = get_earliest_touch();
-        delta_x = -t->frame_movement.x;
-        delta_y = -t->frame_movement.y;
+        // The camera moves in world pixels; zoom decides how many of them a finger's screen pixel covers.
+        drag.touch_world_per_screen = view == CITY ? g_zoom.get_percentage() / 100.0 : 1.0;
+        delta_x = -t->frame_movement.x * drag.touch_world_per_screen;
+        delta_y = -t->frame_movement.y * drag.touch_world_per_screen;
     }
     drag.delta.x += delta_x;
     drag.delta.y += delta_y;
-    drag.travel.x += std::abs(delta_x);
-    drag.travel.y += std::abs(delta_y);
+    drag.travel.x += (int)std::lround(std::fabs(delta_x));
+    drag.travel.y += (int)std::lround(std::fabs(delta_y));
     if (!drag.moved
         && (drag.travel.x > config.drag_min_delta || drag.travel.y > config.drag_min_delta)) {
         drag.moved = 1;
@@ -253,8 +258,8 @@ int scroll_t::drag_end() {
         g_mouse.set_relative_mode(0);
     else if (has_scrolled) {
         const touch_t* t = get_earliest_touch();
-        speed_set_target(speed.x, -t->frame_movement.x, SPEED_CHANGE_IMMEDIATE, 1);
-        speed_set_target(speed.y, -t->frame_movement.y, SPEED_CHANGE_IMMEDIATE, 1);
+        speed_set_target(speed.x, -t->frame_movement.x * drag.touch_world_per_screen, SPEED_CHANGE_IMMEDIATE, 1);
+        speed_set_target(speed.y, -t->frame_movement.y * drag.touch_world_per_screen, SPEED_CHANGE_IMMEDIATE, 1);
     }
     speed_set_target(speed.x, 0, config.drag_decay_time, 1);
     speed_set_target(speed.y, 0, config.drag_decay_time, 1);
@@ -376,7 +381,7 @@ bool scroll_t::set_speed_from_input(const mouse *m, type t) {
     }
 
     const bool keep_inertia = !!game_features::gameui_keep_camera_inertia;
-    if (set_speed_from_drag(keep_inertia)) {
+    if (set_speed_from_drag(keep_inertia, t)) {
         return true;
     }
 

@@ -95,7 +95,11 @@ private:
         int is_touch = 0;
         int apply_middle_mouse_pan_speed = 0;
         int moved = 0;
-        vec2i delta;
+        double touch_world_per_screen = 1.0;
+        struct {
+            double x = 0;
+            double y = 0;
+        } delta;
         vec2i travel;
     };
 
@@ -131,7 +135,7 @@ private:
     int get_direction(const mouse *m);
     static int direction_from_sides(int top, int left, int bottom, int right);
     static int get_alignment_delta(int direction, int camera_max_offset, int camera_offset);
-    int set_speed_from_drag(bool keep_delta);
+    int set_speed_from_drag(bool keep_delta, type view);
     bool set_speed_from_input(const mouse *m, type t);
 };
 
