@@ -5,6 +5,8 @@
 #include "core/bstring.h"
 #include "core/log.h"
 #include "game/game_config.h"
+#include "input/keyboard.h"
+#include "platform/screen.h"
 
 #include <SDL.h>
 
@@ -38,7 +40,42 @@ void platform_setup_begin() {
 void platform_run_init_callback() {
 }
 
+// iOS can raise the keyboard by itself when the screen rotates or folds. SDL then either turns
+// text input on, or, mid-transition, leaves it off with the keyboard up, and SDL only hides a
+// keyboard it knows it showed. Nothing in the game would ever close either one.
+static void dismiss_stray_keyboard() {
+    constexpr Uint32 screen_change_settle_ms = 700;
+    static vec2i last_size = {0, 0};
+    static SDL_DisplayOrientation last_orientation = SDL_ORIENTATION_UNKNOWN;
+    static Uint32 check_at = 0;
+
+    const vec2i size = g_platform_screen.get_window_size();
+    const SDL_DisplayOrientation orientation = SDL_GetDisplayOrientation(0);
+    if (size != last_size || orientation != last_orientation) {
+        check_at = last_size.x > 0 ? SDL_GetTicks() + screen_change_settle_ms : 0;
+        last_size = size;
+        last_orientation = orientation;
+    }
+
+    if (g_keyboard.is_capturing()) {
+        check_at = 0;
+        return;
+    }
+
+    if (SDL_IsTextInputActive()) {
+        SDL_StopTextInput();
+        return;
+    }
+
+    if (check_at && SDL_TICKS_PASSED(SDL_GetTicks(), check_at)) {
+        check_at = 0;
+        SDL_StartTextInput();
+        SDL_StopTextInput();
+    }
+}
+
 void platform_run_per_frame_callback() {
+    dismiss_stray_keyboard();
 }
 
 int platform_poll_event(CoreEvent* event) {
