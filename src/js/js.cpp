@@ -59,6 +59,8 @@ struct {
     std::unordered_set<std::string> queued_files;
     std::unordered_set<std::string> loaded_files;
     int have_error;
+    // Event handlers that threw, skipped until the error state is reset or scripts reload.
+    std::unordered_set<std::string> disabled_handlers;
     bstring256 error_str;
     js_State *J;
     char *frame_alloc_buffer = nullptr;
@@ -353,6 +355,18 @@ bool js_vm_have_error() {
 }
 
 void js_vm_reset_error() {
+    vm.have_error = 0;
+    vm.disabled_handlers.clear();
+}
+
+bool js_vm_handler_disabled(pcstr funcname) {
+    return funcname && vm.disabled_handlers.count(funcname) > 0;
+}
+
+void js_vm_disable_failed_handler(pcstr funcname) {
+    if (funcname) {
+        vm.disabled_handlers.insert(funcname);
+    }
     vm.have_error = 0;
 }
 
@@ -757,6 +771,7 @@ bool js_vm_sync(const xstring &mission_id) {
                elapsed_ms);
 
     vm.have_error = 0;
+    vm.disabled_handlers.clear();
     return true;
 }
 
@@ -1000,6 +1015,7 @@ void js_reset_vm_state() {
     vm.queued_files.clear();
     vm.loaded_files.clear();
     vm.have_error = 0;
+    vm.disabled_handlers.clear();
     vm.frame_alloc_ctx.release();
 
     vm.J = js_newstate(js_alloc_wrapper, nullptr, JS_STRICT);

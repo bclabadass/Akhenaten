@@ -116,6 +116,7 @@ When copying game data from a desktop install, leave out `akhenaten.conf`: the g
 - JS strings are interned as `xstring` and capped at 65,535 chars (`src/core/xstring.cpp`); longer ones abort.
 - `src/mujs/CLAUDE.md` says MuJS sources are CRLF, but they are LF now.
 - `GamestateIO::delete_savegame` removes a path relative to the process's working directory, not the data folder, so the tests' save cleanup does nothing unless the game starts in the data folder (upstream; not fixed). Test saves accumulate in `Save/Integral Tests/`.
+- **One script error used to freeze the UI for the session.** After any `[es=...]` handler threw, the VM error flag stayed set and `js_call_event_handlers` skipped every handler until a script reload, including top-menu drawing and sidebar input (seen on the Duo: top bar black, menu dead, after the well script failed at the month change). Now only the failing handler is skipped (`js_vm_disable_failed_handler`) and logged as "JS: handler … disabled until scripts reload"; grep the log for that line when a feature stops working. Tests 282 and 283.
 - Saves made with no family chosen land loose in `Save/`, where the Load dialog (it lists `Save/<family>/`) never shows them.
 
 ## Next steps

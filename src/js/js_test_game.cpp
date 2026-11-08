@@ -323,6 +323,16 @@ void __test_touch_up(int finger, int x, int y) {
 }
 ANK_FUNCTION_3(__test_touch_up);
 
+static void __test_js_add_event_handler(pcstr event_name, pcstr funcname) {
+    js_register_event_handler(event_name, funcname);
+}
+ANK_FUNCTION_2(__test_js_add_event_handler);
+
+static void __test_js_dispatch_event(pcstr event_name) {
+    js_call_event_handlers(event_name, {});
+}
+ANK_FUNCTION_1(__test_js_dispatch_event);
+
 void __test_signal_ready() {
     g_test_signal_ready = true;
 }

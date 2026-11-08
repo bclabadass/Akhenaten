@@ -241,6 +241,11 @@ static bool js_callable_wants_frame(js_State *J, int idx) {
         && (js_getmodifier(J, idx, property_memory) == property_frame);
 }
 
+void js_register_event_handler(const xstring& event_name, const xstring& funcname) {
+    auto r = event_type_handlers.insert(std::make_pair(event_name, event_handlers{}));
+    r.first->second.push_back(funcname);
+}
+
 void js_call_event_handlers(const xstring &event_name, const bvariant_map &object) {
     OZZY_PROFILER_SECTION(_, event_name.c_str())
 
@@ -259,6 +264,9 @@ void js_call_event_handlers(const xstring &event_name, const bvariant_map &objec
 
     for (const xstring &handlerName : handler_names) {
         pcstr funcname = handlerName.c_str();
+        if (js_vm_handler_disabled(funcname)) {
+            continue;
+        }
 
         OZZY_PROFILER_SECTION(_, funcname)
 
@@ -339,6 +347,11 @@ void js_call_event_handlers(const xstring &event_name, const bvariant_map &objec
         }
         if (!ok) {
             logs::error("Fatal error on call function %s", funcname);
+            // The error flag would otherwise stop every script until a reload, and the UI itself
+            // (top menu drawing, sidebar input) runs on these events; a player can't reload.
+            // Only the handler that threw is dropped: it would fail again on every call.
+            logs::error("JS: handler %s disabled until scripts reload", funcname);
+            js_vm_disable_failed_handler(funcname);
         }
 
         int current_top = J->gettop();
@@ -438,9 +451,7 @@ void js_register_game_handlers(xstring missionid) {
                             xstring mod_key = to_xstring(mod->key);
 
                             if (!!mod_key && is_es(mod->key)) {
-                                auto r = event_type_handlers.insert(std::make_pair(mod_value, event_handlers{}));
-                                auto &handlers = r.first->second;
-                                handlers.push_back(prop_name);
+                                js_register_event_handler(mod_value, prop_name);
                                 if (g_args.is_log_js_handlers()) {
                                     logs::info("JS: Registered handler '%s' for event '%s' (mission: '%s')", prop_name.c_str(), mod_value.c_str(), missionid.c_str());
                                 }

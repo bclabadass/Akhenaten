@@ -27,6 +27,12 @@ int js_vm_trypcall_keep_result(js_State *J, int params);
 bool js_vm_have_error();
 
 void js_vm_reset_error();
+// A handler that threw is skipped from then on, and the error is cleared so other scripts keep
+// running. js_vm_reset_error() and a script reload enable it again.
+void js_vm_disable_failed_handler(pcstr funcname);
+bool js_vm_handler_disabled(pcstr funcname);
+// Adds a global function as a handler for an event, as an [es=event] modifier would.
+void js_register_event_handler(const xstring& event_name, const xstring& funcname);
 bool js_vm_global_is_callable(js_State *J, const char *name);
 int js_vm_stack_depth_if_idle();
 int js_vm_force_idle_stack();
