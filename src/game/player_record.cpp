@@ -13,8 +13,10 @@ uint32_t player_record::calc_score() const {
     }
 
     const double months = completion_months;
+    // Stored unsigned in the file, but a city can finish in debt.
+    const double funds = (int32_t)final_funds;
     const double result = (difficulty + 1.0) / 3.0
-                          * ((final_funds / (months / 30.0)) + unkn * unkn * 20.0 / (months * months / 6400.0)
+                          * ((funds / (months / 30.0)) + unkn * unkn * 20.0 / (months * months / 6400.0)
                              + final_population * 0.002 * (rating_culture + rating_prosperity + rating_kingdom));
 
     return (result > 0.0) ? (uint32_t)result : 0;
@@ -53,6 +55,11 @@ void player_record::read(buffer& buf) {
     nonempty = !!buf.read_u32();
 
     player_name[MAX_PLAYER_NAME - 1] = 0;
+
+    // Older builds read negative funds as unsigned and saved a score in the hundreds of millions.
+    if ((int32_t)final_funds < 0) {
+        score = calc_score();
+    }
 }
 
 void player_record::write(buffer& buf) const {

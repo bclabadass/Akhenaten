@@ -122,6 +122,7 @@
 #include <array>
 #include "game/autosave_module.h"
 #include "core/bstring.h"
+#include "game/player_profile.h"
 #include "game/game.h"
 #include "game/file_editor.h"
 #include "game/resource.h"
@@ -329,6 +330,12 @@ static void __test_scroll_set_input(bool enabled) {
     g_scroll.set_mouse_input(enabled);
 }
 ANK_FUNCTION_1(__test_scroll_set_input);
+
+static void __test_player_set_record_score(int scenario_id, int score) {
+    g_player.records[scenario_id].score = (uint32_t)score;
+    g_player.save();
+}
+ANK_FUNCTION_2(__test_player_set_record_score);
 
 static void __test_js_add_event_handler(pcstr event_name, pcstr funcname) {
     js_register_event_handler(event_name, funcname);
