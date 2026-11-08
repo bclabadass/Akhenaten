@@ -63,6 +63,7 @@
 #include "grid/gems.h"
 #include "game/game.h"
 #include "editor/editor.h"
+#include "platform/arguments.h"
 #include "scenario/criteria.h"
 #include "scenario/demand_change.h"
 #include "scenario/distant_battle.h"
@@ -126,12 +127,20 @@ vfs::path fullpath_player_folder(pcstr player_name) {
     return vfs::path(vfs::SAVE_FOLDER, "/", player_name ? player_name : "");
 }
 
+// Integral tests run with no family chosen, so their saves would land loose in Save/.
+// A family of their own keeps them together and lets the Load dialog list them.
+constexpr pcstr INTEGRAL_TESTS_FAMILY = "Integral Tests";
+
 vfs::path fullpath_saves(vfs::path filename) {
     if (strncasecmp(filename, "Save/", 5) == 0 || strncasecmp(filename, "Save\\", 5) == 0) {
         return vfs::path(filename);
     }
 
-    const vfs::path folder = fullpath_player_folder(game_features::gameopt_player_name.to_string().c_str());
+    xstring family = game_features::gameopt_player_name.to_string();
+    if (family.empty() && g_args.is_integral_tests()) {
+        family = INTEGRAL_TESTS_FAMILY;
+    }
+    const vfs::path folder = fullpath_player_folder(family.c_str());
     return vfs::path(folder.c_str(), "/", filename);
 }
 

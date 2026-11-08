@@ -42,7 +42,7 @@ struct mouse : public vec2i {
     void set_middle_down(int down);
     void set_right_down(int down);
     void set_scroll(int state);
-    void set_from_touch(const touch_t * first, const touch_t * last);
+    void set_from_touch(const touch_t* first);
     void reset_up_state(void);
     void reset_scroll(void);
     void reset_button_state(void);

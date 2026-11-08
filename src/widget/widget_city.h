@@ -20,8 +20,6 @@ struct screen_city_t {
     int new_start_grid_offset;
     bool capture_input;
     bool buildings_flat_view = false;
-    bool two_finger_gesture = false;
-    bool two_finger_not_tap = false;
 
     local_render_context_t render_ctx;
     svector<screen_space_effect_cb *, 8> screen_space_effects;

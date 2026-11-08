@@ -24,7 +24,7 @@ static void clear_mouse_button(mouse_button* button) {
     button->system_change = SYSTEM_NONE;
 }
 
-void mouse::set_from_touch(const touch_t* first, const touch_t* last) {
+void mouse::set_from_touch(const touch_t* first) {
     x = first->current_point.x;
     y = first->current_point.y;
     scrolled = touch_get_scroll();
@@ -34,8 +34,9 @@ void mouse::set_from_touch(const touch_t* first, const touch_t* last) {
     left.system_change = SYSTEM_NONE;
     right.system_change = SYSTEM_NONE;
 
-    if (touch_is_scroll()) {
+    if (touch_multi_finger_gesture()) {
         reset_button_state();
+        right.went_up = touch_multi_finger_tap();
         return;
     }
 
@@ -44,10 +45,7 @@ void mouse::set_from_touch(const touch_t* first, const touch_t* last) {
     left.went_up = first->has_ended;
     left.double_click = touch_was_double_click(first);
 
-    right.is_down = (!last->has_ended && last->in_use);
-    right.went_down = last->has_started;
-    right.went_up = last->has_ended;
-
+    clear_mouse_button(&right);
     clear_mouse_button(&middle);
 }
 

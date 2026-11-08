@@ -34,6 +34,13 @@ int get_total_active_touches();
 // True when at least one finger is in use and every finger in use has ended this frame.
 bool touch_all_ended();
 
+// Touch has no right button: a gesture that had two fingers down at once stands in for it.
+// The gesture lasts until every finger is up, so no finger in it counts as a left click.
+bool touch_multi_finger_gesture();
+// True on the frame a multi-finger gesture ends as a tap: nothing moved, and a finger was
+// a quick tap (both together, or holding one and tapping the other).
+bool touch_multi_finger_tap();
+
 int touch_not_click(const touch_t * t);
 int touch_was_click(const touch_t * t);
 int touch_was_double_click(const touch_t * t);

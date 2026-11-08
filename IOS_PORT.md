@@ -6,7 +6,7 @@ Goal: play Pharaoh + Cleopatra on an **iPhone Duo** (iOS 27) via a native iOS bu
 - Mac: M5 Pro MacBook Pro, macOS 27, Xcode 27.2 with iOS SDK, Homebrew cmake/git/libpng, `llvm@20` (for clang-format 20)
 - Repo: `~/Developer/Akhenaten`, branch **`ios-port`** (upstream: github.com/dalerank/Akhenaten)
 - Game data (Steam, Pharaoh 1.3 + Cleopatra, copied from a Windows install): `~/Games/Pharaoh` (contains `campaign.txt`), matching `data_directory` in `~/Library/Application Support/Akhenaten/akhenaten.cfg`.
-  The integral suite writes `test_*.svx` saves into its `Save/` folder; they also ended up on the Duo with the data copy.
+  The integral suite runs with no family chosen, so its saves (`test_*.svx`, autosaves) go to a family of their own, `Save/Integral Tests/` (`fullpath_saves` in `src/io/gamestate/boilerplate.cpp`; `tests/281_test_saves_family.js`). Older runs left them loose in `Save/`. On 2026-11-07 the Mac's were moved into the family, and the family folder was copied to the Duo with `devicectl device copy to` (the phone never runs the suite, so the folder doesn't appear there by itself).
 - Mac baseline build works: `./compile_macos.sh arm64`, run with
   `./build-arm64/akhenaten.app/Contents/MacOS/akhenaten --window --size 1280x960 <data dir>`
   (some visual/sound bugs, these are upstream engine issues, not port issues)
@@ -20,6 +20,7 @@ Goal: play Pharaoh + Cleopatra on an **iPhone Duo** (iOS 27) via a native iOS bu
 - New maps work: scrolling, placing buildings, and walkers behave normally.
 - **Loading a saved map crashes the game.** Not yet investigated.
 - **Right-click: fixed, confirmed on the Duo.** A two-finger tap in the city view drops the build tool and undoes a drag in progress (`screen_city_t::handle_two_finger_gesture`); two-finger pan/pinch keeps it. Covered by `tests/278_touch_two_finger_cancel.js`, using the `__test_touch_down/move/up` helpers in `src/js/js_test_game.cpp` (not valid UTF-8: edit it byte-wise).
+- **Right-click everywhere else: fixed, confirmed on the Duo.** A two-finger tap, or holding one finger and tapping another, is now a real right-click at the mouse level (`touch_multi_finger_gesture`/`touch_multi_finger_tap` in `src/input/touch.cpp`, used by `mouse::set_from_touch`), so windows, info panels, advisors, dialogs and the military/ship picking modes close or go back as with a mouse. Before, the old mapping only worked when the second finger lifted first; with the first finger up first it became a left click under the second finger. No finger in a two-finger gesture counts as a left click. Covered by `tests/280_touch_two_finger_right_click.js` (fails on the old code).
 - **Settings now persist on iOS** (confirmed on the Duo). They were only written on a clean Quit or a game save; iOS suspends and later kills apps without one. `platform_ios.cpp` saves them from an SDL event watch on `SDL_APP_WILLENTERBACKGROUND`/`SDL_APP_TERMINATING` (logged as "platform::ios: leaving foreground, saving settings").
 - **Pinch-zoom: fixed, confirmed on the Duo** (with "Enable zoom" on). Two causes:
   - Zoom was off by default (`gameui_zoom`), and with it off `zoom_t::update_value` resets the zoom every frame. It now defaults to on for iOS only (`src/game/game_config.cpp`); desktop and `--og` keep it off. The fresh-install default is untested on a device.
@@ -39,6 +40,7 @@ The iOS changes touch shared code (`platform.h`, `akhenaten.cpp`, MuJS), so macO
 - With the platform-layer changes: 326 passed, the same 13 failed.
 - Those 13 also fail without these changes: `120_mudbrick_small_place`, `123_mudbrick_medium_place`, `125_mudbrick_large_place`, `20_warship_wharf_placement`, `221_scribal_school_og_spawn`, `222_library_og_spawn`, `228_mortuary_og`, `240_dock_og`, `240_lumberjack_og`, `249_kingdom_request_sea`, `262_warship_wharf_og`, `268_true_large_pyramid_og_complete`, `80_birds_hunt`. Not investigated, and not checked on Linux, which is what CI uses.
 - **With the MuJS fix: 319 passed, 20 failed, but that run had no game data** (folder renamed, see Environment). 5 of the 7 extra failures are editor tests that couldn't write to `<data dir>/Maps`. The other two, `211_animal_info_window` and `241_enemy_heavy_og`, are unexplained. Rerun once the data folder is sorted out.
+- With the touch right-click and test-family changes (2026-11-07): 330 passed, the same 13 failed.
 - `02_main_menu_buttons` failed once in an earlier full run and passed every run since. It looks flaky; the cause wasn't found.
 
 Before committing: format with clang-format 20, from Homebrew's `llvm@20` (the plain `clang-format` formula is a newer version that CI would reject):
@@ -113,6 +115,8 @@ When copying game data from a desktop install, leave out `akhenaten.conf`: the g
 - `simctl uninstall` deletes the app's container, including the copied game data. `simctl install` over an existing app keeps it.
 - JS strings are interned as `xstring` and capped at 65,535 chars (`src/core/xstring.cpp`); longer ones abort.
 - `src/mujs/CLAUDE.md` says MuJS sources are CRLF, but they are LF now.
+- `GamestateIO::delete_savegame` removes a path relative to the process's working directory, not the data folder, so the tests' save cleanup does nothing unless the game starts in the data folder (upstream; not fixed). Test saves accumulate in `Save/Integral Tests/`.
+- Saves made with no family chosen land loose in `Save/`, where the Load dialog (it lists `Save/<family>/`) never shows them.
 
 ## Next steps
 1. ~~Simulator runtime, first launch, platform layer, data into Simulator~~: done.
@@ -126,7 +130,7 @@ When copying game data from a desktop install, leave out `akhenaten.conf`: the g
    - Upstream `master` had no fix as of 2026-11-07 (branch level with `origin/master` at `24ce892ec`).
    - Repro without the UI: a throwaway test in `tests/` calling `__game_load_savegame('Retryohep/Meidum 7.sav')` then `__test_pump_frames(30)`, run with real data (`--nointro`, no `--no-resource`). The crash handler prints the backtrace to the game log.
    - Untested: saves made by Akhenaten itself, loaded on the Duo.
-4. **Playability, remaining**: other places that need right-click besides the city view (overlays, military, editor, info panels); fold/unfold window resize on the Duo; UI scale on the small outer screen.
+4. **Playability, remaining**: UI scale on the small outer screen.
 5. **Ferry-boat assert** (`figure_ferry_boat::figure_action`, `allow_move_type == EMOVE_WATER`) seen in a new game on the Duo; Debug builds only, not investigated.
 6. **Device build type**: Release/RelWithDebInfo for the Duo (asserts off like desktop, smaller stack frames, faster).
 7. Log file on iOS; virtual keyboard (stubs today).

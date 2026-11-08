@@ -11,12 +11,21 @@
 
 enum E_EMULATED_MOUSE { EMULATED_MOUSE_CLICK_NONE = 0, EMULATED_MOUSE_CLICK_LEFT = 1, EMULATED_MOUSE_CLICK_RIGHT = 2 };
 
+struct multi_finger_gesture_t {
+    bool active;
+    bool moved;
+    bool had_quick_tap;
+    bool finished;
+    bool tap;
+};
+
 struct touch_data_t {
     touch_t finger[MAX_ACTIVE_TOUCHES + 1];
     touch_t old_touch;
     int last_scroll_position;
     int mode;
     int touchpad_mode_click_type;
+    multi_finger_gesture_t gesture;
 };
 
 touch_data_t g_touch_data;
@@ -92,6 +101,45 @@ bool touch_all_ended() {
         any_in_use = true;
     }
     return any_in_use;
+}
+
+bool touch_multi_finger_gesture() {
+    return g_touch_data.gesture.active;
+}
+
+bool touch_multi_finger_tap() {
+    return g_touch_data.gesture.tap;
+}
+
+// Once per frame, before the touches are turned into mouse state. Fingers can lift in
+// different frames, so what each one did is remembered until the last one is up.
+static void update_multi_finger_gesture() {
+    auto& data = g_touch_data;
+    auto& g = data.gesture;
+    if (g.finished || (g.active && !get_total_active_touches())) {
+        g = {};
+    }
+
+    if (get_total_active_touches() >= 2) {
+        g.active = true;
+    }
+    if (!g.active) {
+        return;
+    }
+
+    for (int i = 0; i < MAX_ACTIVE_TOUCHES; ++i) {
+        const touch_t& t = data.finger[i];
+        if (!t.in_use) {
+            continue;
+        }
+        g.moved |= (t.has_moved != 0);
+        g.had_quick_tap |= (touch_was_click(&t) != 0);
+    }
+
+    if (touch_all_ended()) {
+        g.finished = true;
+        g.tap = !g.moved && g.had_quick_tap;
+    }
 }
 
 int touch_not_click(const touch_t * t) {
@@ -212,6 +260,7 @@ void touch_clear_all(void) {
     data.old_touch = {};
     data.last_scroll_position = 0;
     data.touchpad_mode_click_type = EMULATED_MOUSE_CLICK_NONE;
+    data.gesture = {};
     mouse::ref().is_touch = 0;
     platform_touch_reset();
 }
@@ -323,6 +372,7 @@ static void handle_mouse_direct(void) {
 
 int touch_to_mouse(void) {
     auto &data = g_touch_data;
+    update_multi_finger_gesture();
     const touch_t * first = get_earliest_touch();
     auto &m = mouse::ref();
 
@@ -341,7 +391,7 @@ int touch_to_mouse(void) {
         handle_mouse_direct();
         break;
     default:
-        m.set_from_touch(first, get_latest_touch());
+        m.set_from_touch(first);
         break;
     }
     return 1;

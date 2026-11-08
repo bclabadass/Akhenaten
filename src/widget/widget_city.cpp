@@ -1336,21 +1336,12 @@ static void handle_last_touch(void) {
     }
 }
 
-// Touch has no right button. Two fingers down together pan or pinch; if both lift quickly
-// without moving, it acts as right-click and drops the build tool. Until every finger is up,
-// neither finger may count as a tap, or the first finger lifting would place or inspect.
+// Two fingers pan or pinch; a two-finger tap is right-click and drops the build tool.
+// Until every finger is up, neither finger may count as a tap, or the first finger
+// lifting would place or inspect.
 bool screen_city_t::handle_two_finger_gesture() {
-    if (get_total_active_touches() >= 2) {
-        two_finger_gesture = true;
-    }
-    if (!two_finger_gesture) {
+    if (!touch_multi_finger_gesture()) {
         return false;
-    }
-
-    const touch_t* first = get_earliest_touch_raw();
-    const touch_t* last = get_latest_touch();
-    if ((first->in_use && touch_not_click(first)) || (last->in_use && touch_not_click(last))) {
-        two_finger_not_tap = true;
     }
 
     handle_last_touch();
@@ -1360,7 +1351,7 @@ bool screen_city_t::handle_two_finger_gesture() {
     }
 
     if (touch_all_ended()) {
-        if (!two_finger_not_tap) {
+        if (touch_multi_finger_tap()) {
             if (g_city_planner.in_progress) {
                 g_city_planner.construction_cancel();
             }
@@ -1368,8 +1359,6 @@ bool screen_city_t::handle_two_finger_gesture() {
                 g_city_planner.construction_cancel();
             }
         }
-        two_finger_gesture = false;
-        two_finger_not_tap = false;
         capture_input = false;
     }
     return true;
