@@ -4,8 +4,8 @@ log_info("akhenaten: building_shrine_seth started")
 building_shrine_seth {
     type: BUILDING_SHRINE_SETH
     animations : {
-      preview : {pack:PACK_GENERAL, id:72, },
-      base : {pack:PACK_GENERAL, id:72, offset:0 },
+      preview : {pack:PACK_GENERAL, id:74, },
+      base : {pack:PACK_GENERAL, id:74, offset:0 },
     },
     labor_category : LABOR_CATEGORY_RELIGION,
     overlay : OVERLAY_RELIGION_SETH,

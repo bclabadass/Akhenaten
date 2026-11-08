@@ -4,8 +4,8 @@ log_info("akhenaten: building_shrine_ra started")
 building_shrine_ra {
     type: BUILDING_SHRINE_RA
     animations : {
-      preview : {pack:PACK_GENERAL, id:74, },
-      base : {pack:PACK_GENERAL, id:74, offset:0 },
+      preview : {pack:PACK_GENERAL, id:72, },
+      base : {pack:PACK_GENERAL, id:72, offset:0 },
     },
     labor_category : LABOR_CATEGORY_RELIGION,
     overlay : OVERLAY_RELIGION_RA,
