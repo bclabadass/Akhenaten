@@ -236,6 +236,11 @@ bool file_remove(path filename) {
     if (filename.empty()) {
         return false;
     }
+#if !defined(GAME_PLATFORM_ANDROID)
+    // Callers pass paths like "Save/<family>/x.svx", relative to the data folder as for reads and
+    // writes; bare, the OS would resolve them against the working directory instead.
+    filename = filename.resolve();
+#endif
     bool res = platform_file_manager_remove_file(filename.c_str());
     sync_em_fs();
     return res;
@@ -257,6 +262,9 @@ bool file_rename_os(path from, path to) {
         logs::error("unable to rename %s -> %s", from.c_str(), to.c_str());
     }
 #else
+    // Relative to the data folder, as in file_remove.
+    from = from.resolve();
+    to = to.resolve();
     std::error_code err;
     std::filesystem::rename(from.c_str(), to.c_str(), err);
     const bool res = !err;
