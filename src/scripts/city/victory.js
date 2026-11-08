@@ -2,6 +2,7 @@ log_info("akhenaten: city victory started")
 
 city.victory = extend(__city_victory, {
     reasons: {},
+    reasons_ready: false,
 
     set_reason: function(name, value) {
         this.reasons[name] = value
@@ -198,6 +199,14 @@ function city_victory_on_advance_month(ev) {
 [es=(city_victory, reset)]
 function city_victory_on_reset(ev) {
     city.victory.reasons = {}
+    city.victory.reasons_ready = false
+}
+
+// Missions set their win reasons in handlers of this event; once it has been processed, the
+// reasons describe the current city.
+[es=event_update_victory_state]
+function city_victory_on_reasons_updated(ev) {
+    city.victory.reasons_ready = true
 }
 
 [es=(city_victory, victory_check)]
@@ -207,7 +216,9 @@ function city_victory_on_check(ev) {
     }
 
     emit event_update_victory_state { population: city.population }
-    city.victory.state = city_victory_determine_state()
+    // emit only queues, so this check sees the reasons from the last processed update. Straight
+    // after a load or reset there are none yet, and no reasons would count as all met.
+    city.victory.state = city.victory.reasons_ready ? city_victory_determine_state() : 0
 
     if (scenario.has_won) {
         city.victory.state = scenario.continue_months_left <= 0 ? 1 : 0
