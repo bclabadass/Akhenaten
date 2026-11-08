@@ -97,6 +97,10 @@ void sig_handler(int signal_num) {
 
     logs::critical("%s", output_stream.str().c_str());
 #endif // CPPTRACE_ENABLED
+
+    // Writes are batched about once a second; without this a failed assert loses its lead-up.
+    logs::error("Crashed with signal %d", signal_num);
+    logs::flush();
 }
 
 void log_v(SDL_LogPriority priority, pcstr format, va_list args) {

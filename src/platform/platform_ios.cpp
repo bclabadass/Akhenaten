@@ -23,6 +23,7 @@ static int SDLCALL save_settings_when_backgrounded(void*, SDL_Event* event) {
     if (event->type == SDL_APP_WILLENTERBACKGROUND || event->type == SDL_APP_TERMINATING) {
         logs::info("platform::ios: leaving foreground, saving settings");
         game_features::save();
+        logs::flush();
     }
     return 1;
 }
@@ -57,6 +58,12 @@ pcstr platform_request_initial_data_directory() {
     // Created up front so the folder is there to copy into from the Files app.
     std::error_code ec;
     std::filesystem::create_directories(data_dir.c_str(), ec);
+
+    // The log is truncated on every launch, and reopening the app after a crash would wipe the
+    // log that explains it. Runs once, before the log moves into this folder.
+    const std::filesystem::path log_path = std::filesystem::path(data_dir.c_str()) / logs::default_filename;
+    std::filesystem::rename(log_path, std::filesystem::path(data_dir.c_str()) / "akhenaten-log-previous.txt", ec);
+
     return data_dir.c_str();
 }
 
@@ -92,12 +99,18 @@ pcstr platform_t::get_steam_path() {
     return "";
 }
 
+// SDL leaves text input off on devices with an on-screen keyboard; starting it shows the keyboard.
+// SDL also stops it when the player dismisses the keyboard, so tapping the field again re-shows it.
 void platform_show_virtual_keyboard(const uint8_t* text, int max_length) {
     (void)text;
     (void)max_length;
+    SDL_StartTextInput();
 }
 
 void platform_hide_virtual_keyboard(void) {
+    if (SDL_IsTextInputActive()) {
+        SDL_StopTextInput();
+    }
 }
 
 #endif

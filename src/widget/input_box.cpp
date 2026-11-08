@@ -37,6 +37,7 @@ void input_box_stop(input_box* box) {
     box->text = 0;
     g_keyboard.stop_capture();
     g_keyboard.set_input_rect(0, 0, 0, 0);
+    g_keyboard.hide_virtual();
 }
 
 void input_box_refresh_text(input_box* box) {

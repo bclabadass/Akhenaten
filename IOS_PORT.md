@@ -108,7 +108,7 @@ When copying game data from a desktop install, leave out `akhenaten.conf`: the g
 - App files on the device: `xcrun devicectl device info files --device <id> --domain-type appDataContainer --domain-identifier <bundle id> --subdirectory Documents`. `device copy to` with the same domain copies files or folders in.
 - A free team can't sign a bundle ID registered by another team, hence `<BUNDLE_ID>` for the device. xcodebuild signs only with an Apple ID signed into Xcode > Settings > Accounts ("No Accounts" error otherwise).
 - `simctl bootstatus` exits 0 even on `Data Migration Failed`; check its text. `simctl list runtimes` only shows that a runtime is registered, not that its devices work.
-- No game log reaches the app container. The default log backend in `src/core/log.cpp` uses a bare `akhenaten-log.txt` filename, which probably resolves against an unwritable working directory on iOS (not confirmed). Until that's fixed, use crash reports and screenshots.
+- The game log is `Documents/PharaohData/akhenaten-log.txt` (Files > On My iPhone > Akhenaten > PharaohData). Each launch moves the last one to `akhenaten-log-previous.txt` (`platform_ios.cpp`), so after a crash, open the app again and read the previous log. The log is also flushed when the app is backgrounded and when it aborts (a failed assert; the assert text itself is only in the crash report). Pull either one with `xcrun devicectl device copy from --device <id> --domain-type appDataContainer --domain-identifier <bundle id> --source Documents/PharaohData/akhenaten-log-previous.txt --destination <local path>`.
 - `simctl launch <udid> <bundle id> --no-logo --nointro` passes arguments to the game (`simctl` can't send touches).
 - Xcode 27.2 has no Simulator.app (`open -a Simulator` fails). The simulated device window is DeviceHub: `open /Applications/Xcode.app/Contents/Applications/DeviceHub.app`.
 - `GAME_PLATFORM_MACOSX` stays defined on iOS, and `is_macos()` returns true there. `GAME_PLATFORM_IOS` / `is_ios()` mark only what differs, so check for `is_ios()` first when adding Apple-specific code.
@@ -133,6 +133,6 @@ When copying game data from a desktop install, leave out `akhenaten.conf`: the g
 4. **Playability, remaining**: UI scale on the small outer screen.
 5. **Ferry-boat assert** (`figure_ferry_boat::figure_action`, `allow_move_type == EMOVE_WATER`) seen in a new game on the Duo; Debug builds only, not investigated.
 6. **Device build type**: Release/RelWithDebInfo for the Duo (asserts off like desktop, smaller stack frames, faster).
-7. Log file on iOS; virtual keyboard (stubs today).
+7. ~~Log file on iOS; virtual keyboard~~: done, both confirmed on the Duo.
 8. Potential future update: move the engine to SDL3 (drops the SDL2 UIScene patch).
 9. Compare engine bugs with the Mac build; check or report them upstream. Optional: offer the iOS changes upstream as a PR (the MuJS fix and the touch fixes are useful on their own).
