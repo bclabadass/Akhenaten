@@ -1337,6 +1337,12 @@ void screen_city_t::handle_first_touch(tile2i tile) {
     if (touch_was_click(first) && first->has_ended && capture_input
         && has_confirmed_construction(selected_tile, tile, size)) {
         g_city_planner.update_hover(selected_tile);
+        // A red ghost can't be built, so a tap beside it moves it rather than confirming: picks
+        // land a tile off easily on a phone, and booths fit only one tile at a crossroads.
+        if (g_city_planner.can_be_placed() != CAN_PLACE && tile != selected_tile) {
+            selected_tile = tile;
+            return;
+        }
         g_city_planner.construction_start(selected_tile);
         build_move(selected_tile);
         build_end();

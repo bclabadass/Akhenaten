@@ -1,10 +1,12 @@
 // Touch places a non-draggable building in two taps: the first picks the tile, a second tap on
 // or next to the ghost confirms, and the building goes on the first tile. The placement check
 // ran wherever the confirming finger was, so confirming one row over could build across a road
-// (a hunting lodge on the Duo). The check and the ghost must follow the picked tile.
+// (a hunting lodge on the Duo). The check and the ghost must follow the picked tile, and while
+// the ghost is red a tap beside it moves it (a booth fits only one tile at a crossroads).
 // Markers:
 //   [test-marker] setup_blocked_and_free
 //   [test-marker] confirm_beside_blocked_tile_refused
+//   [test-marker] red_ghost_moved_then_built
 //   [test-marker] confirm_beside_free_tile_builds
 //   [test-marker] road_kept
 
@@ -58,6 +60,8 @@ function t285_count(type) {
 
 function run_test() {
     test_reload_city_session('data/default.map')
+    // Earlier tests may leave the camera rotated; tile picks below assume north.
+    __camera_rotate_north()
     __test_set_treasury(100000)
     __scenario_building_allow(BUILDING_ROAD, true)
     __scenario_building_allow(BUILDING_HUNTING_LODGE, true)
@@ -109,6 +113,8 @@ function run_test() {
     __log_info_native('[test:285] picked ' + a.x + ',' + a.y + ' @' + pa.x + ',' + pa.y + ' confirm ' + b.x + ','
         + b.y + ' @' + pb.x + ',' + pb.y)
 
+    // Pick the blocked tile, then tap the free one beside it: a red ghost can't be confirmed,
+    // so the tap moves it (the old check followed the finger and built across the road).
     var lodges = t285_count(BUILDING_HUNTING_LODGE)
     t285_tap(pa)
     t285_tap(pb)
@@ -117,16 +123,50 @@ function run_test() {
     } else {
         __log_info_native('[test:285] lodge was built on the blocked tile')
     }
-
-    // The other way round: pick the free tile, confirm on the blocked one beside it.
-    lodges = t285_count(BUILDING_HUNTING_LODGE)
+    // The ghost now sits on the free tile; tapping it builds there.
     t285_tap(pb)
-    t285_tap(pa)
     var built = __building_at(b.x, b.y)
     if (t285_count(BUILDING_HUNTING_LODGE) == lodges + 1 && built && __building_type(built) == BUILDING_HUNTING_LODGE) {
+        __log_marker('red_ghost_moved_then_built')
+    } else {
+        __log_info_native('[test:285] no lodge after moving the ghost to ' + b.x + ',' + b.y)
+    }
+
+    // The other way round, along the road: pick a free tile, confirm on the blocked one beside it.
+    // Same blocked/free layout a few tiles along, clear of the first lodge and on screen.
+    var a2 = null
+    var b2 = null
+    var pa2 = null
+    var pb2 = null
+    var shifts = [3, -3, 4, -4, 5, -5]
+    for (var k = 0; k < shifts.length && !pa2; k++) {
+        var ta2 = { x: a.x + shifts[k], y: a.y }
+        var tb2 = { x: b.x + shifts[k], y: b.y }
+        city_planner.update(ta2.x, ta2.y)
+        var a2_blocked = city_planner.can_be_placed() != CAN_PLACE
+        city_planner.update(tb2.x, tb2.y)
+        if (!a2_blocked || city_planner.can_be_placed() != CAN_PLACE) {
+            continue
+        }
+        var qa = t285_tile_center(ta2.x, ta2.y)
+        var qb = t285_tile_center(tb2.x, tb2.y)
+        if (qa && qb) {
+            a2 = ta2
+            b2 = tb2
+            pa2 = qa
+            pb2 = qb
+        }
+    }
+    lodges = t285_count(BUILDING_HUNTING_LODGE)
+    if (pa2 && pb2) {
+        t285_tap(pb2)
+        t285_tap(pa2)
+    }
+    var built2 = b2 ? __building_at(b2.x, b2.y) : 0
+    if (t285_count(BUILDING_HUNTING_LODGE) == lodges + 1 && built2 && __building_type(built2) == BUILDING_HUNTING_LODGE) {
         __log_marker('confirm_beside_free_tile_builds')
     } else {
-        __log_info_native('[test:285] no lodge on the picked free tile')
+        __log_info_native('[test:285] no lodge on a picked free tile ' + (b2 ? b2.x + ',' + b2.y : '(none on screen)'))
     }
 
     var road_ok = true
@@ -147,6 +187,7 @@ function run_test() {
 function check_valid() {
     return __test_find_inlog('[test-marker] setup_blocked_and_free')
         && __test_find_inlog('[test-marker] confirm_beside_blocked_tile_refused')
+        && __test_find_inlog('[test-marker] red_ghost_moved_then_built')
         && __test_find_inlog('[test-marker] confirm_beside_free_tile_builds')
         && __test_find_inlog('[test-marker] road_kept')
 }
