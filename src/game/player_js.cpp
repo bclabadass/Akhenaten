@@ -1,6 +1,8 @@
 #include "player_profile.h"
 
 #include "city/city.h"
+#include "core/log.h"
+#include "game/game_config.h"
 #include "game/highscores.h"
 #include "js/js_game.h"
 
@@ -37,8 +39,17 @@ pcstr __game_get_last_autosave() {
 ANK_FUNCTION(__game_get_last_autosave)
 
 void __game_player_record_mission_win(int scenario_id) {
+    // Only the family menu loads the profile. A game opened from the Load dialog or Continue
+    // skipped it, so the win went to an empty profile that save() quietly refuses.
+    const xstring family = game_features::gameopt_player_name.to_string();
+    if (!family.empty() && !(family == g_player.name)) {
+        g_player.select(family.c_str());
+    }
     g_player.record_win(city_make_mission_result(scenario_id));
-    g_player.save();
+    if (!g_player.save()) {
+        logs::error("player profile: could not save the win for scenario %d (family '%s')", scenario_id,
+          g_player.name.c_str());
+    }
 }
 ANK_FUNCTION_1(__game_player_record_mission_win)
 
@@ -57,6 +68,7 @@ PLAYER_SCENARIO_RECORD_GETTER(__game_player_scenario_record_rating_prosperity, r
 PLAYER_SCENARIO_RECORD_GETTER(__game_player_scenario_record_rating_kingdom, rating_kingdom)
 PLAYER_SCENARIO_RECORD_GETTER(__game_player_scenario_record_difficulty, difficulty)
 PLAYER_SCENARIO_RECORD_GETTER(__game_player_scenario_record_score, score)
+PLAYER_SCENARIO_RECORD_GETTER(__game_player_scenario_record_nonempty, nonempty)
 
 #undef PLAYER_SCENARIO_RECORD_GETTER
 
