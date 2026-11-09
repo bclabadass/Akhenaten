@@ -7,6 +7,7 @@
 #include "graphics/elements/menu.h"
 #include "graphics/image.h"
 #include "graphics/screen.h"
+#include "graphics/view/view.h"
 #include "game/game_config.h"
 #include "arguments.h"
 #include "platform/android/android.h"
@@ -219,6 +220,7 @@ bool platform_screen_t::resize(int pixel_width, int pixel_height, int save) {
     if (unfolded != last_unfolded) {
         last_unfolded = unfolded;
         set_scale_percentage(unfolded ? 67 : 100, pixel_width, pixel_height);
+        g_camera.sidebar_collapsed = !unfolded;
     }
 #endif
 
