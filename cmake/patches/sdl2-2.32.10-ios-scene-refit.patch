@@ -1,0 +1,68 @@
+--- a/src/video/uikit/SDL_uikitappdelegate.m
++++ b/src/video/uikit/SDL_uikitappdelegate.m
+@@ -31,6 +31,8 @@
+ #import "SDL_uikitmodes.h"
+ #import "SDL_uikitwindow.h"
+ #import "SDL_uikitvideo.h"
++#import "SDL_uikitviewcontroller.h"
++#include "../../events/SDL_windowevents_c.h"
+ 
+ #include "../../events/SDL_events_c.h"
+ 
+@@ -574,8 +576,56 @@
+     }
+     started = YES;
+     [(SDLUIKitDelegate *)[SDLUIKitDelegate sharedAppDelegate] startWithScene:scene];
++}
++
++/* Taking its app-switcher snapshot on a foldable, iOS lays the app out at the other screen's size
++ * and doesn't lay it out again on return. The window is back at the right size by then, but the
++ * last size SDL heard is the snapshot's, so correct SDL from the real window. */
++static void SDL_UIKitRefitSceneWindows(UIWindowScene *scene) API_AVAILABLE(ios(13.0), tvos(13.0))
++{
++    const CGRect target = scene.screen.bounds;
++
++    for (UIWindow *window in scene.windows) {
++        if (![window.rootViewController isKindOfClass:[SDL_uikitviewcontroller class]]) {
++            continue;
++        }
++        SDL_uikitviewcontroller *controller = (SDL_uikitviewcontroller *)window.rootViewController;
++        SDL_Window *sdl_window = controller.window;
++        const CGSize view_size = controller.view.bounds.size;
++        const int w = (int)target.size.width;
++        const int h = (int)target.size.height;
++
++        SDL_Log("uikit: scene active: window %.0fx%.0f, view %.0fx%.0f, sdl %dx%d, screen %dx%d",
++                window.frame.size.width, window.frame.size.height, view_size.width, view_size.height,
++                sdl_window ? sdl_window->w : -1, sdl_window ? sdl_window->h : -1, w, h);
++
++        if (!CGRectEqualToRect(window.frame, target)) {
++            window.frame = target;
++        }
++        if (!CGSizeEqualToSize(view_size, target.size)) {
++            controller.view.frame = window.bounds;
++        }
++        [controller.view setNeedsLayout];
++        [controller.view layoutIfNeeded];
++
++        if (sdl_window && (sdl_window->w != w || sdl_window->h != h)) {
++            SDL_SendWindowEvent(sdl_window, SDL_WINDOWEVENT_RESIZED, w, h);
++        }
++    }
+ }
+ 
++- (void)sceneDidBecomeActive:(UIScene *)scene
++{
++    if (![scene isKindOfClass:[UIWindowScene class]]) {
++        return;
++    }
++    UIWindowScene *windowScene = (UIWindowScene *)scene;
++    SDL_UIKitRefitSceneWindows(windowScene);
++    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
++        SDL_UIKitRefitSceneWindows(windowScene);
++    });
++}
++
+ @end
+ 
+ #endif /* SDL_VIDEO_DRIVER_UIKIT */
