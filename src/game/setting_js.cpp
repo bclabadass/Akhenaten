@@ -103,6 +103,11 @@ bool __platform_is_android() {
 }
 ANK_FUNCTION(__platform_is_android)
 
+bool __platform_is_ios() {
+    return platform.is_ios();
+}
+ANK_FUNCTION(__platform_is_ios)
+
 int __display_options_get_scale() {
     return g_platform_screen.get_scale();
 }

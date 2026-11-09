@@ -200,6 +200,8 @@ top_menu_widget {
 	background { pack:PACK_GENERAL, id:121, offset:8 }
 	sidebar_offset : 158
 	spacing : 16
+	unfolded_edge_inset : 80
+	unfolded_min_width : 1000
 	rotate_x : -170
 	rotate_img { pack:PACK_GENERAL, id:136, offset:72 }
 	status_header_gap : 16

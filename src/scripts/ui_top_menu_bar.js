@@ -21,12 +21,21 @@ function top_menu_on_level_post_load(ev) {
 	top_menu_refresh_status_text()
 }
 
+// The iPhone Duo's inner screen has curved corners that clip both ends of the menu bar.
+function top_menu_edge_inset(width, is_ios) {
+	return (is_ios && width >= top_menu_widget.unfolded_min_width) ? top_menu_widget.unfolded_edge_inset : 0
+}
+
+function top_menu_headers_x() {
+	return top_menu_widget.offset.x + top_menu_edge_inset(screen.width, __platform_is_ios())
+}
+
 function top_menu_measure_headers_right() {
 	var menus = top_menu_widget.menus
 	if (!menus || menus.length == 0) {
-		return top_menu_widget.offset.x
+		return top_menu_headers_x()
 	}
-	var cur_x = top_menu_widget.offset.x
+	var cur_x = top_menu_headers_x()
 	var spacing = top_menu_widget.spacing
 	// The hovered header draws in YELLOW (bold in TTF fonts) — lay out for the wider glyphs.
 	var font = !!game_features.gameui_highlight_top_menu_hover ? FONT_NORMAL_YELLOW : FONT_NORMAL_BLACK_ON_LIGHT
@@ -49,14 +58,15 @@ function top_menu_update_status_shift() {
 		top_menu_state.status_shift = 0
 		return 0
 	}
-	var funds_x = screen.width + funds.right
-	var need = headers_right + gap
-	if (funds_x >= need) {
-		top_menu_state.status_shift = 0
-		return 0
-	}
-	top_menu_state.status_shift = need - funds_x
+	top_menu_state.status_shift = top_menu_status_shift_for(screen.width, __platform_is_ios(), headers_right + gap, funds.right)
 	return top_menu_state.status_shift
+}
+
+// Negative pulls the status fields in from the screen edge; positive pushes them right, clear of the headers.
+function top_menu_status_shift_for(width, is_ios, need, funds_right) {
+	var funds_x = width + funds_right
+	var inset = top_menu_edge_inset(width, is_ios)
+	return funds_x - inset >= need ? -inset : need - funds_x
 }
 
 function top_menu_draw_background() {
@@ -98,7 +108,7 @@ function top_menu_draw_headers() {
 		return
 	}
 
-	var cur_x = top_menu_widget.offset.x
+	var cur_x = top_menu_headers_x()
 	var cur_y = top_menu_widget.offset.y
 	var spacing = top_menu_widget.spacing
 	var highlight = !!game_features.gameui_highlight_top_menu_hover
