@@ -146,6 +146,21 @@ ui.show_yesno = __ui_dialog_show_yesno
 ui.show_ok = __ui_dialog_show_ok
 
 function px(i) { return i * 16 }
+// Copies freshly computed layout positions into a window's stored config, leaving its state alone.
+function __layout_store(live, fresh) {
+    if (!live || !fresh) {
+        return
+    }
+    if (fresh.pos !== undefined) {
+        live.pos = fresh.pos
+    }
+    if (live.ui && fresh.ui) {
+        for (var id in fresh.ui) {
+            __layout_store(live.ui[id], fresh.ui[id])
+        }
+    }
+}
+
 function sw(v) { return screen.width + v}
 function sh(v) { return screen.height + v}
 function mbutton(i) { return [sw(0) / 2 - 128, sh(0) / 2 - 100 + 40 * i] }

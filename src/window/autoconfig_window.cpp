@@ -172,6 +172,9 @@ void autoconfig_window::refresh_layout_for_screen() {
             w->config_pos = fresh;
             shift_elements_for_screen(arch, w->elements, xstring());
         });
+        // Later config reloads (the Editor, a language change) read the stored object.
+        const std::string store = std::string("__layout_store(") + entry.first.c_str() + ", __layout_refresh)";
+        js_vm_exec_source("layout_refresh", store.c_str());
         ++refreshed;
     }
     js_vm_exec_source("layout_refresh", "__layout_refresh = undefined");

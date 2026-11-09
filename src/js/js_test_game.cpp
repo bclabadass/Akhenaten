@@ -350,6 +350,11 @@ static vec2i __test_window_element_pos(xstring section, xstring id) {
 }
 ANK_FUNCTION_2(__test_window_element_pos);
 
+static void __test_window_configs_reload() {
+    autoconfig_window::refresh_all();
+}
+ANK_FUNCTION(__test_window_configs_reload);
+
 static void __test_js_add_event_handler(pcstr event_name, pcstr funcname) {
     js_register_event_handler(event_name, funcname);
 }
