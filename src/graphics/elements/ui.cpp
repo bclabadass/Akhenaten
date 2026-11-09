@@ -1050,6 +1050,7 @@ void ui::element::load(archive arch, element* parent, element::items& items) {
     debug_tag = arch.r_int("debug_tag");
     parent_id = parent ? parent->id : xstring();
     pos = arch.r_vec2i("pos");
+    config_pos = pos;
     size = arch.r_size2i("size");
     set_event(ONDRAW_EVENT, arch.r_string(ONDRAW_EVENT));
     enabled = arch.r_bool("enabled", true);
@@ -1157,6 +1158,7 @@ void ui::widget::draw(UiFlags flags) {
 void ui::widget::archive_load(archive arch) {
     elements.clear();
     pos = arch.r_vec2i("pos");
+    config_pos = pos;
     e_font default_font = arch.r_type<e_font>("default_font", FONT_NORMAL_BLACK_ON_LIGHT);
 
     ui_widget_load_elements(arch, "ui", nullptr, elements);
@@ -1484,7 +1486,26 @@ void ui::eimg_queue::image(int image) {
 void ui::ebackground::draw(UiFlags flags) {
     painter ctx = game.painter();
     scr_pos = pos;
-    graphics_draw_background(ctx, img_desc.tid(), 1.f, pos);
+    if (!true_size) {
+        graphics_draw_background(ctx, img_desc.tid(), 1.f, pos);
+        return;
+    }
+
+    // The art has its panel painted in, so it must stay at the scale of the controls drawn on it.
+    // A darkened enlarged copy fills whatever the true-size picture doesn't reach.
+    constexpr color margin_tint = 0xff606060;
+    const image_t* img = image_get(img_desc.tid());
+    if (!img || img->width <= 0 || img->height <= 0) {
+        return;
+    }
+    const vec2i true_pos = {(screen_width() - img->width) / 2, (screen_height() - img->height) / 2};
+    if (true_pos.x > 0 || true_pos.y > 0) {
+        const float fit = std::max((float)screen_width() / img->width, (float)screen_height() / img->height);
+        const vec2i fit_pos = {(screen_width() - (int)(img->width * fit)) / 2,
+          (screen_height() - (int)(img->height * fit)) / 2};
+        ctx.draw_image(img, fit_pos, margin_tint, fit);
+    }
+    ctx.draw_image(img, true_pos, COLOR_MASK_NONE, 1.f);
 }
 
 void ui::ebackground::load(archive arch, element* parent, items& elems) {
@@ -1493,6 +1514,7 @@ void ui::ebackground::load(archive arch, element* parent, items& elems) {
     xstring type = arch.r_string("type");
     assert(type == "background");
     scale = arch.r_float("scale", 1.f);
+    true_size = arch.r_bool("true_size", false);
     img_desc.pack = arch.r_int("pack");
     img_desc.id = arch.r_int("id");
     img_desc.offset = arch.r_int("offset");

@@ -2,6 +2,8 @@
 
 #include "core/profiler.h"
 #include "graphics/graphics.h"
+#include "graphics/screen.h"
+#include "window/autoconfig_window.h"
 #include "input/cursor.h"
 #include "input/scroll.h"
 #include "graphics/elements/ui.h"
@@ -116,6 +118,11 @@ void windows_manager_t::handle_tooltip(const mouse *m) {
 
 void window_draw(int force) {
     auto& data = g_window_manager;
+    if (g_screen.layout_stale) {
+        g_screen.layout_stale = false;
+        autoconfig_window::refresh_layout_for_screen();
+    }
+
     // draw the current (top) window in the queue
     ui::begin_frame();
 

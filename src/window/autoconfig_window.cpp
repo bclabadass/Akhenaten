@@ -10,8 +10,12 @@
 #include "js/js_events.h"
 #include "input/input.h"
 #include "input/mouse.h"
+#include "js/js.h"
 #include "platform/arguments.h"
+#include "core/system_time.h"
 #include <algorithm>
+#include <cctype>
+#include <string>
 #include <unordered_map>
 #include <mutex>
 
@@ -46,6 +50,132 @@ void ANK_REGISTER_CONFIG_ITERATOR(config_load_autoconfig_windows) {
 
 void autoconfig_window::refresh_all() {
     config_load_autoconfig_windows();
+}
+
+// Skips strings and comments starting at i; returns true if it moved past one.
+static bool skip_script_trivia(const std::string& s, size_t& i) {
+    if (s[i] == '/' && i + 1 < s.size() && s[i + 1] == '/') {
+        const size_t end = s.find('\n', i);
+        i = (end == std::string::npos) ? s.size() : end;
+        return true;
+    }
+    if (s[i] == '/' && i + 1 < s.size() && s[i + 1] == '*') {
+        const size_t end = s.find("*/", i + 2);
+        i = (end == std::string::npos) ? s.size() : end + 2;
+        return true;
+    }
+    if (s[i] == '"' || s[i] == '\'') {
+        const char quote = s[i++];
+        while (i < s.size() && s[i] != quote) {
+            i += (s[i] == '\\') ? 2 : 1;
+        }
+        ++i;
+        return true;
+    }
+    return false;
+}
+
+static size_t script_block_end(const std::string& s, size_t open) {
+    int depth = 0;
+    for (size_t i = open; i < s.size();) {
+        if (skip_script_trivia(s, i)) {
+            continue;
+        }
+        if (s[i] == '{') {
+            ++depth;
+        } else if (s[i] == '}' && --depth == 0) {
+            return i;
+        }
+        ++i;
+    }
+    return std::string::npos;
+}
+
+// Finds each window's top-level `name { ... }` block in a script and keeps its text.
+static void collect_layout_blocks(const std::string& s, std::unordered_map<xstring, std::string>& blocks) {
+    int depth = 0;
+    for (size_t i = 0; i < s.size();) {
+        if (skip_script_trivia(s, i)) {
+            continue;
+        }
+        const char c = s[i];
+        if (c == '{') {
+            ++depth;
+        } else if (c == '}') {
+            --depth;
+        } else if (depth == 0 && (isalpha((unsigned char)c) || c == '_')) {
+            size_t end = i;
+            while (end < s.size() && (isalnum((unsigned char)s[end]) || s[end] == '_')) {
+                ++end;
+            }
+            size_t open = end;
+            while (open < s.size() && isspace((unsigned char)s[open])) {
+                ++open;
+            }
+            const xstring name(s.substr(i, end - i).c_str());
+            if (open < s.size() && s[open] == '{' && autoconfig_registry().count(name)) {
+                const size_t close = script_block_end(s, open);
+                if (close == std::string::npos) {
+                    return;
+                }
+                blocks[name] = s.substr(open, close - open + 1);
+                i = close + 1;
+                continue;
+            }
+            i = end;
+            continue;
+        }
+        ++i;
+    }
+}
+
+static void shift_elements_for_screen(archive arch, ui::element::items& elements, const xstring& parent) {
+    arch.r_objects("ui", [&](pcstr key, archive elem) {
+        const xstring id(key);
+        auto it = std::find_if(elements.begin(), elements.end(),
+          [&](const auto& e) { return e->id == id && e->parent_id == parent; });
+        if (it == elements.end()) {
+            return;
+        }
+        const vec2i fresh = elem.r_vec2i("pos");
+        (*it)->pos = (*it)->pos + (fresh - (*it)->config_pos);
+        (*it)->config_pos = fresh;
+        shift_elements_for_screen(elem, elements, id);
+    });
+}
+
+// Layout blocks compute positions from the screen size once, when scripts load. Re-evaluating just
+// those blocks keeps the scripts' state, and moving by the change in the layout's own value keeps
+// anything a script positioned at runtime.
+void autoconfig_window::refresh_layout_for_screen() {
+    constexpr pcstr temp_name = "__layout_refresh";
+    const time_millis started = time_get_millis();
+
+    std::unordered_map<xstring, std::string> blocks;
+    js_vm_for_each_loaded_script([&](const std::string& source) { collect_layout_blocks(source, blocks); });
+
+    int refreshed = 0;
+    for (auto& entry : autoconfig_registry()) {
+        auto block = blocks.find(entry.first);
+        if (block == blocks.end()) {
+            continue;
+        }
+        const std::string source = std::string(temp_name) + " " + block->second;
+        if (!js_vm_exec_source("layout_refresh", source.c_str())) {
+            logs::error("layout refresh: could not evaluate %s", entry.first.c_str());
+            continue;
+        }
+        autoconfig_window* w = entry.second;
+        g_config_arch.r_section(temp_name, [w](archive arch) {
+            const vec2i fresh = arch.r_vec2i("pos");
+            w->pos = w->pos + (fresh - w->config_pos);
+            w->config_pos = fresh;
+            shift_elements_for_screen(arch, w->elements, xstring());
+        });
+        ++refreshed;
+    }
+    js_vm_exec_source("layout_refresh", "__layout_refresh = undefined");
+    logs::info("[layout] refreshed %d windows in %u ms", refreshed, (unsigned)(time_get_millis() - started));
 }
 
 autoconfig_window::autoconfig_window(xstring s) {

@@ -657,6 +657,45 @@ int js_vm_load_file_and_exec(pcstr path) {
     return 1;
 }
 
+void js_vm_for_each_loaded_script(const std::function<void(const std::string&)>& visit) {
+    for (const std::string& path : vm.loaded_files) {
+        pcstr npath = (path[0] == ':') ? path.c_str() + 1 : path.c_str();
+        auto found = mods_find_script(npath, true);
+        if (!!found.reader) {
+            visit(std::string((char*)found.reader->data()));
+            continue;
+        }
+        vfs::reader reader;
+        if (!vm.scripts_folders.empty()) {
+            reader = vfs::file_open(js_vm_get_absolute_path(npath), "rt");
+        }
+        if (!reader) {
+            reader = vfs::file_open(path.c_str(), "rt");
+        }
+        if (reader) {
+            visit(std::string((char*)reader->data()));
+        }
+    }
+}
+
+bool js_vm_exec_source(pcstr name, pcstr source) {
+    if (!vm.J) {
+        return false;
+    }
+    const int top = vm.J->gettop();
+    bool ok = false;
+    if (js_ploadstring(vm.J, name, source)) {
+        js_vm_log_script_parse_or_compile_failure(vm.J, name);
+    } else {
+        js_getglobal(vm.J, "");
+        ok = js_vm_trypcall(vm.J, 0);
+    }
+    if (vm.J->gettop() > top) {
+        js_pop(vm.J, vm.J->gettop() - top);
+    }
+    return ok;
+}
+
 js_State *js_vm_state() {
     return vm.J;
 }

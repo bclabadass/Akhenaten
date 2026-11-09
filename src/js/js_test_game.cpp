@@ -123,6 +123,7 @@
 #include "game/autosave_module.h"
 #include "core/bstring.h"
 #include "game/player_profile.h"
+#include "window/autoconfig_window.h"
 #include "game/game.h"
 #include "game/file_editor.h"
 #include "game/resource.h"
@@ -336,6 +337,18 @@ static void __test_player_set_record_score(int scenario_id, int score) {
     g_player.save();
 }
 ANK_FUNCTION_2(__test_player_set_record_score);
+
+static vec2i __test_window_pos(xstring section) {
+    autoconfig_window* w = autoconfig_window::find(section);
+    return w ? w->pos : vec2i{-1, -1};
+}
+ANK_FUNCTION_1(__test_window_pos);
+
+static vec2i __test_window_element_pos(xstring section, xstring id) {
+    autoconfig_window* w = autoconfig_window::find(section);
+    return (w && w->contains(id)) ? (*w)[id].pos : vec2i{-1, -1};
+}
+ANK_FUNCTION_2(__test_window_element_pos);
 
 static void __test_js_add_event_handler(pcstr event_name, pcstr funcname) {
     js_register_event_handler(event_name, funcname);

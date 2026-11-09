@@ -424,6 +424,7 @@ namespace ui {
         xstring parent_id;
         vec2i scr_pos;
         vec2i pos;
+        vec2i config_pos;
         vec2i size;
         margini margin = {};
         bool readonly = false;
@@ -649,6 +650,7 @@ namespace ui {
     struct ebackground : public element {
         image_desc img_desc;
         float scale = 1.f;
+        bool true_size = false;
 
         virtual void draw(UiFlags flags) override;
         virtual void load(archive elem, element* parent, items& elems) override;
@@ -1009,6 +1011,7 @@ namespace ui {
 
     struct widget {
         vec2i pos;
+        vec2i config_pos;
         bool check_errors;
         e_font default_font = FONT_INVALID;
         element::items elements;

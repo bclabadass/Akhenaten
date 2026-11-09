@@ -10,6 +10,7 @@
 screen_t g_screen;
 
 void screen_t::set_resolution(int w, int h) {
+    layout_stale = layout_stale || (width > 0 && (width != w || height != h));
     width = w;
     height = h;
     dialog_offset.x = (width - 640) / 2;

@@ -225,6 +225,12 @@ bool platform_screen_t::resize(int pixel_width, int pixel_height, int save) {
     int logical_width = scale_pixels_to_logical(pixel_width);
     int logical_height = scale_pixels_to_logical(pixel_height);
 
+#if defined(GAME_PLATFORM_IOS)
+    const vec2i actual = get_window_size();
+    logs::info("platform::ios: resize to %dx%d, window is %dx%d, scale %d%%, canvas %dx%d", pixel_width, pixel_height,
+      actual.x, actual.y, scale_percentage, logical_width, logical_height);
+#endif
+
     if (save) {
         // Store window pixels (matches video-mode list), not logical size.
         game_features::gameopt_display_size.set({pixel_width, pixel_height});

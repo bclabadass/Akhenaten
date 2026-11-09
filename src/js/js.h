@@ -4,6 +4,8 @@
 #include "core/variant.h"
 
 #include <cstdint>
+#include <functional>
+#include <string>
 
 struct js_State;
 struct mission_id_t;
@@ -18,6 +20,8 @@ js_State *js_vm_state();
 int js_vm_exec_function_args(pcstr funcname, const char *szTypes, ...);
 int js_vm_exec_function(pcstr funcname);
 void js_vm_reload_file(pcstr path);
+void js_vm_for_each_loaded_script(const std::function<void(const std::string&)>& visit);
+bool js_vm_exec_source(pcstr name, pcstr source);
 int js_vm_load_file_and_exec(pcstr path);
 
 void js_vm_add_scripts_folder(vfs::path folder);

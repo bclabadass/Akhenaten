@@ -8,6 +8,8 @@ struct screen_t {
     vec2i dialog_offset;
 
     vec2i size() const { return {width, height}; }
+    bool layout_stale = false;
+
     void set_resolution(int width, int height);
 };
 
