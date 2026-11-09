@@ -112,14 +112,15 @@ void screen_city_t::scroll_map(const mouse* m) {
 }
 
 static tile2i city_planner_cursor_tile_from_mouse() {
-    const mouse &m = mouse::get();
-    if (is_in_construction_buttons_region({m.x, m.y})) {
-        return tile2i::invalid;
-    }
+    const mouse& m = mouse::get();
     // Touch places a non-draggable building on the tile picked by the first tap, while the
-    // confirming tap may land beside it. Check and preview the picked tile, not the last finger.
+    // confirming tap may land beside it. Check and preview the picked tile, not the last finger,
+    // which may be on a placement button.
     if (g_screen_city.selected_tile.grid_offset() > 0 && !g_city_planner.draggable()) {
         return g_screen_city.selected_tile;
+    }
+    if (is_in_construction_buttons_region({m.x, m.y})) {
+        return tile2i::invalid;
     }
     return g_screen_city.update_city_view_coords({m.x, m.y});
 }
@@ -1819,8 +1820,10 @@ void screen_city_t::handle_input_warship(const mouse *m, const hotkeys *h, int w
 void screen_city_t::handle_mouse(const mouse* m) {
     current_tile = update_city_view_coords(*m);
 
+    // After a finger lifts the last touch point acts as a hovering mouse, so hover must respect
+    // a picked tile too.
     if (g_city_planner.build_type && !g_city_planner.in_progress) {
-        g_city_planner.update_hover(current_tile);
+        g_city_planner.update_hover(city_planner_cursor_tile_from_mouse());
     }
 
     const float old_zoom_target = g_zoom.ftarget();

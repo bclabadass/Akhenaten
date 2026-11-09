@@ -145,6 +145,7 @@ namespace game_features {
     game_feature gameplay_copper_mine_can_build_near_mountains{ "gameplay_copper_mine_can_build_near_mountains", "#TR_CONFIG_COPPER_NEAR_MOUNTAINS", false, false };
     game_feature gameplay_recruiter_not_need_forts{ "gameplay_recruiter_not_need_forts", "#TR_CONFIG_RECRUITER_NOT_NEED_FORTS", false, false };
     game_feature gameui_highlight_top_menu_hover{ "gameui_highlight_top_menu_hover", "#TR_CONFIG_HIGHLIGHT_TOP_MENU_HOVER", false, false };
+    game_feature gameui_touch_cancel_button{ "gameui_touch_cancel_button", "#TR_CONFIG_TOUCH_CANCEL_BUTTON", false, false };
     game_feature gameui_empire_city_old_names{ "gameui_empire_city_old_names", "#TR_CONFIG_EMPIRE_CITY_OLD_NAMES", false, false };
     game_feature gameplay_draw_cloud_shadows{ "gameplay_draw_cloud_shadows", "#TR_CONFIG_DRAW_CLOUD_SHADOWS", false, false };
     game_feature gameplay_building_road_closest{ "gameplay_building_road_closest", "#TR_CONFIG_BUILDING_CLOSEST_ROAD", false, false };

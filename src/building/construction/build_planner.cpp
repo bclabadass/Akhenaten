@@ -432,6 +432,13 @@ void build_planner::setup_building_variant(tile2i tile, e_building_type type) {
     custom_building_variant = preview.setup_building_variant(type, tile, random_value);
 }
 
+bool build_planner::can_rotate() const {
+    if (!build_type) {
+        return false;
+    }
+    return !!game_features::gameui_rotate_manually || building_static_params::get(build_type).flags.allow_rotate;
+}
+
 void build_planner::next_building_variant() {
     const auto &preview = building_planer_renderer::get(build_type);
     custom_building_variant = preview.next_building_variant(build_type, end, custom_building_variant);

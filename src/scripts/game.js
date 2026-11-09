@@ -163,6 +163,7 @@ game_features {
     @gameui_show_delivery_paths {}
     @gameui_flat_buildings {}
     @gameui_highlight_top_menu_hover {}
+    @gameui_touch_cancel_button {}
     @count { get: __game_features_count }
 }
 

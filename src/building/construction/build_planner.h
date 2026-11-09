@@ -122,6 +122,7 @@ public:
     inline bool needResources() const { return is_flag(PLANNER_RULE_RESOURCES); }
     inline bool ignoreNearbyEnemy() const { return is_flag(PLANNER_RULE_IGNORE_NEARBY_ENEMY); }
     inline bool draggable() const { return is_flag(PLANNER_RULE_DRAGGABLE); }
+    bool can_rotate() const;
     inline bool needFerry() const { return is_flag(PLANNER_RULE_FERRY); }
     inline bool needBridge() const { return is_flag(PLANNER_RULE_BRIDGE); }
     inline bool needTempleUpgradeAltar() const { return is_flag(PLANNER_RULE_TEMPLE_UPGRADE_ALTAR); }

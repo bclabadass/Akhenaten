@@ -153,6 +153,7 @@ namespace game_features {
     extern game_feature gameplay_copper_mine_can_build_near_mountains;
     extern game_feature gameplay_recruiter_not_need_forts;
     extern game_feature gameui_highlight_top_menu_hover;
+    extern game_feature gameui_touch_cancel_button;
     extern game_feature gameui_empire_city_old_names;
     extern game_feature gameplay_draw_cloud_shadows;
     extern game_feature gameplay_building_road_closest;

@@ -29,10 +29,14 @@
 #include "graphics/elements/image_button.h"
 #include "graphics/elements/ui.h"
 #include "graphics/image_groups.h"
+#include "game/game_config.h"
+#include "input/hotkey.h"
 #include "input/mouse.h"
 #include "input/touch.h"
 #include "input/scroll.h"
 #include "platform/platform.h"
+#include <climits>
+#include <iterator>
 
 window_city g_window_city;
 
@@ -53,31 +57,65 @@ static void button_confirm_construction(int, int) {
                g_city_planner.in_progress ? 1 : 0);
 }
 
+static void button_rotate_construction(int, int) {
+    events::emit(event_rotate_building{1});
+}
+
 // Hit boxes match the 3x2 panels (48x32); drawn image stays 39x26 via image_buttons_draw.
 static image_button construction_buttons[] = {
-    {-4, -4, 48, 32, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 4, button_cancel_construction, button_none, 0, 0, 1},
-    {-4, 32, 48, 32, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 0, button_confirm_construction, button_none, 0, 0, 1},
+  {-4, -4, 48, 32, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 4, button_cancel_construction, button_none, 0, 0, 1},
+  {-4, 32, 48, 32, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 0, button_confirm_construction, button_none, 0, 0, 1},
+  {-20, 32, 64, 43, IB_NORMAL, GROUP_OK_CANCEL_SCROLL_BUTTONS, 0, button_rotate_construction, button_none, 0, 0, 0},
 };
 
 static int construction_button_pressed = -1;
 
+// mouse::is_touch only holds while a finger is down, and a button has to be there to be tapped.
+static bool touch_only_platform() {
+    return platform.is_android() || platform.is_ios();
+}
+
+static int construction_buttons_count();
+static bool construction_rotate_visible();
+
 static bool construction_buttons_visible() {
-    return (platform.is_android() || mouse::get().is_touch) && g_city_planner.build_type;
+    if (!(touch_only_platform() || mouse::get().is_touch) || !g_city_planner.build_type) {
+        return false;
+    }
+    return construction_buttons_count() > 0 || construction_rotate_visible();
 }
 
 static vec2i construction_buttons_base_pos() {
     return {g_camera.size_pixels.x - 4 * 16, 44};
 }
 
+// Slots used by the icon buttons. Two-finger tap already cancels, so outside Android (which has
+// its confirm button there too) cancel only shows if turned on in Options.
 static int construction_buttons_count() {
-    return platform.is_android() ? 2 : 1;
+    if (platform.is_android()) {
+        return 2;
+    }
+    return !!game_features::gameui_touch_cancel_button ? 1 : 0;
 }
 
+// Sits in the first free slot below the placement buttons, and is drawn separately: it has text
+// rather than an icon.
+static bool construction_rotate_visible() {
+    return g_city_planner.can_rotate() && !g_city_planner.in_progress;
+}
+
+static void update_construction_rotate_button() {
+    construction_buttons[2].enabled = construction_rotate_visible();
+    construction_buttons[2].y = -4 + 36 * construction_buttons_count();
+}
+
+// Padded touch areas overlap between buttons, so a tap goes to the nearest one.
 static int construction_button_at(vec2i pt) {
     const vec2i base = construction_buttons_base_pos();
-    const int count = construction_buttons_count();
     const int padding = 12; // Touch padding for touchscreen interactions
-    for (int i = 0; i < count; i++) {
+    int nearest = -1;
+    int nearest_distance = INT_MAX;
+    for (int i = 0; i < (int)std::size(construction_buttons); i++) {
         const image_button &btn = construction_buttons[i];
         if (!btn.enabled)
             continue;
@@ -85,10 +123,17 @@ static int construction_button_at(vec2i pt) {
         const int x1 = base.x + btn.x + btn.width + padding;
         const int y0 = base.y + btn.y - padding;
         const int y1 = base.y + btn.y + btn.height + padding;
-        if (pt.x >= x0 && pt.x < x1 && pt.y >= y0 && pt.y < y1)
-            return i;
+        if (pt.x < x0 || pt.x >= x1 || pt.y < y0 || pt.y >= y1)
+            continue;
+        const int dx = pt.x - (base.x + btn.x + btn.width / 2);
+        const int dy = pt.y - (base.y + btn.y + btn.height / 2);
+        const int distance = dx * dx + dy * dy;
+        if (distance < nearest_distance) {
+            nearest_distance = distance;
+            nearest = i;
+        }
     }
-    return -1;
+    return nearest;
 }
 
 bool is_in_construction_buttons_region(vec2i pt) {
@@ -96,10 +141,11 @@ bool is_in_construction_buttons_region(vec2i pt) {
         return false;
     const vec2i base = construction_buttons_base_pos();
     const int count = construction_buttons_count();
-    const int x0 = base.x - 20;
+    const int x0 = base.x - 32;
     const int x1 = base.x + 60;
     const int y0 = 20;
-    const int y1 = (count > 1 ? 124 : 80);
+    const int slots = count + (construction_rotate_visible() ? 1 : 0);
+    const int y1 = 80 + 44 * (slots - 1) + (construction_rotate_visible() ? 12 : 0);
     return pt.x >= x0 && pt.x < x1 && pt.y >= y0 && pt.y < y1;
 }
 
@@ -148,11 +194,23 @@ static void draw_construction_buttons() {
 
     const vec2i base = construction_buttons_base_pos();
     const int count = construction_buttons_count();
-    inner_panel_draw({base.x - 4, 40}, {3, 2});
+    if (count > 0) {
+        inner_panel_draw({base.x - 4, 40}, {3, 2});
+    }
     if (count > 1) {
         inner_panel_draw({base.x - 4, 76}, {3, 2});
     }
     image_buttons_draw(base, construction_buttons, count);
+
+    update_construction_rotate_button();
+    if (construction_buttons[2].enabled) {
+        const image_button& rotate = construction_buttons[2];
+        const vec2i pos = base + vec2i{rotate.x, rotate.y};
+        outer_panel_draw_exact(pos, {rotate.width, rotate.height});
+        const int pressed_offset = rotate.pressed ? 1 : 0;
+        text_draw_centered((const uint8_t*)"R", pos.x + pressed_offset, pos.y + 11 + pressed_offset, rotate.width,
+          FONT_LARGE_BLACK_ON_LIGHT, COLOR_MASK_NONE);
+    }
 }
 
 static bool handle_construction_buttons(const mouse *m) {
@@ -162,17 +220,19 @@ static bool handle_construction_buttons(const mouse *m) {
     }
 
     const int count = construction_buttons_count();
-    construction_buttons[0].enabled = true;
+    construction_buttons[0].enabled = count > 0;
     construction_buttons[1].enabled = count > 1;
+    update_construction_rotate_button();
 
     const vec2i base = construction_buttons_base_pos();
     // get_earliest_touch() hides fingers for ~150ms (start_delayed). Button downs
     // in that window never latched; use the raw finger and decide by start_point.
-    const touch_t *t = (m->is_touch || platform.is_android()) ? get_earliest_touch_raw() : nullptr;
+    const touch_t* t = (m->is_touch || touch_only_platform()) ? get_earliest_touch_raw() : nullptr;
     if (!t || !t->in_use) {
         construction_button_pressed = -1;
         construction_buttons[0].pressed = 0;
         construction_buttons[1].pressed = 0;
+        construction_buttons[2].pressed = 0;
         return false;
     }
 
@@ -181,6 +241,8 @@ static bool handle_construction_buttons(const mouse *m) {
             button_cancel_construction(0, 0);
         else if (which == 1)
             button_confirm_construction(0, 0);
+        else if (which == 2)
+            button_rotate_construction(0, 0);
     };
 
     const int hit_start = construction_button_at(t->start_point);
@@ -216,12 +278,14 @@ static bool handle_construction_buttons(const mouse *m) {
         construction_button_pressed = -1;
         construction_buttons[0].pressed = 0;
         construction_buttons[1].pressed = 0;
+        construction_buttons[2].pressed = 0;
     }
 
     if (t->has_ended) {
         construction_button_pressed = -1;
         construction_buttons[0].pressed = 0;
         construction_buttons[1].pressed = 0;
+        construction_buttons[2].pressed = 0;
         if (active_btn >= 0) {
             logs::info("[build-btn] gesture click which=%d start=(%d,%d) end=(%d,%d)", active_btn, t->start_point.x,
                        t->start_point.y, t->current_point.x, t->current_point.y);
