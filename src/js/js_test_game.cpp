@@ -2344,6 +2344,27 @@ static int __test_house_set_population(int bid, int pop) {
 }
 ANK_FUNCTION_2(__test_house_set_population);
 
+static void __test_building_set_distance_from_entry(int bid, int distance) {
+    building *b = building_get(bid);
+    if (b && b->is_valid()) {
+        b->distance_from_entry = (short)distance;
+    }
+}
+ANK_FUNCTION_2(__test_building_set_distance_from_entry);
+
+static int __test_population_yearly_births() {
+    g_city.population.yearly_calculate_births();
+    return g_city.population.yearly_births;
+}
+ANK_FUNCTION(__test_population_yearly_births);
+
+static int __test_house_population(int bid) {
+    building *b = building_get(bid);
+    auto *house = (b && b->is_valid()) ? b->dcast_house() : nullptr;
+    return house ? house->house_population() : -1;
+}
+ANK_FUNCTION_1(__test_house_population);
+
 static int __test_house_add_population(int bid, int num_people) {
     building *b = building_get(bid);
     if (!b || !b->is_valid()) {
