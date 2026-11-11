@@ -129,6 +129,7 @@ namespace ui {
             text_multiline,
             text_multiline_centered,
             text_colored,
+            text_scaled,
             text_rich,
             clip_set,
             clip_reset,
@@ -238,6 +239,7 @@ namespace ui {
     int label_year(int year, vec2i pos, e_font font = FONT_NORMAL_BLACK_ON_LIGHT);
     int label_colored(textid tx, vec2i pos, e_font font, color color, int box_width = 0);
     int label_colored(pcstr tx, vec2i pos, e_font font, color color, int box_width = 0);
+    int label_scaled(pcstr tx, vec2i pos, e_font font, float scale);
     const image_t* eimage(int imgid, vec2i pos);
     const image_t* eimage(int imgid, vec2i pos, UiFlags flags);
     const image_t* eimage(image_desc img, vec2i pos);

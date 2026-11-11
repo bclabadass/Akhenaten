@@ -1,4 +1,5 @@
-﻿#include "view.h"
+﻿#include "graphics/screen.h"
+#include "view.h"
 
 #include <cmath>
 
@@ -96,11 +97,13 @@ void viewport_t::set_viewport(int x_offset, int y_offset, int width, int height)
 }
 
 void viewport_t::set_viewport_with_sidebar() {
-    set_viewport(0, TOP_MENU_HEIGHT, screen_size.x - widget_sidebar_city_expanded_max() + 2, screen_size.y - TOP_MENU_HEIGHT);
+    set_viewport(0, top_menu_height(), screen_size.x - widget_sidebar_city_expanded_max() + 2,
+      screen_size.y - top_menu_height());
 }
 
 void viewport_t::set_viewport_without_sidebar() {
-    set_viewport(0, TOP_MENU_HEIGHT, screen_size.x - widget_sidebar_city_collapsed_max() + 2, screen_size.y - TOP_MENU_HEIGHT);
+    set_viewport(0, top_menu_height(), screen_size.x - widget_sidebar_city_collapsed_max() + 2,
+      screen_size.y - top_menu_height());
 }
 
 void viewport_t::refresh_viewport() {
@@ -253,8 +256,9 @@ void viewport_t::update_derived_camera_state() {
     };
     render_start_tile = {tile_internal.x - 4, tile_internal.y - 8};
     render_start_pixel = {
-        -(4 * TILE_WIDTH_PIXELS),
-        offset.y - 11 * HALF_TILE_HEIGHT_PIXELS + calc_adjust_with_percentage<int>(TOP_MENU_HEIGHT, g_zoom.get_percentage()),
+      -(4 * TILE_WIDTH_PIXELS),
+      offset.y - 11 * HALF_TILE_HEIGHT_PIXELS
+        + calc_adjust_with_percentage<int>(top_menu_height(), g_zoom.get_percentage()),
     };
     render_start_pixel -= camera_pixel_offset_internal;
     camera_corner_offset = screen_to_tile(tile_internal).grid_offset();

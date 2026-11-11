@@ -77,6 +77,10 @@ void execute_ui_command(painter& ctx, const ui::cmd_t& cmd) {
         }
         break;
 
+    case cmd_t::text_scaled:
+        text_draw(ctx, (const uint8_t*)cmd.str.c_str(), cmd.pos.x, cmd.pos.y, cmd.font, cmd.clr, cmd.scale);
+        break;
+
     case cmd_t::text_rich: {
         rich_text_t rich_text;
         rich_text.set_fonts(cmd.font, FONT_NORMAL_YELLOW);

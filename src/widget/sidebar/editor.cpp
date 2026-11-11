@@ -55,7 +55,7 @@ int sidebar_common_get_x_offset_expanded() {
 }
 
 static void draw_buttons(void) {
-    image_buttons_draw({sidebar_common_get_x_offset_expanded(), TOP_MENU_HEIGHT}, buttons_build, 17);
+    image_buttons_draw({sidebar_common_get_x_offset_expanded(), top_menu_height()}, buttons_build, 17);
 }
 
 static void draw_status(void) {
@@ -137,11 +137,11 @@ void widget_sidebar_editor_draw_background() {
     image_desc relief_block{ PACK_GENERAL, 121, 4 };
     int image_base = side_panel.tid();
     int x_offset = sidebar_common_get_x_offset_expanded();
-    ctx.img_generic(image_base, { x_offset, TOP_MENU_HEIGHT });
+    ctx.img_generic(image_base, {x_offset, top_menu_height()});
     draw_buttons();
     widget_minimap_draw({x_offset + MINIMAP_X_OFFSET, MINIMAP_Y_OFFSET}, 1);
     draw_status();
-    sidebar_common_draw_relief({ x_offset, SIDEBAR_MAIN_SECTION_HEIGHT + TOP_MENU_HEIGHT }, relief_block);
+    sidebar_common_draw_relief({x_offset, SIDEBAR_MAIN_SECTION_HEIGHT + top_menu_height()}, relief_block);
 }
 
 void widget_sidebar_editor_draw_foreground(void) {
@@ -153,15 +153,18 @@ int widget_sidebar_editor_handle_mouse(const mouse* m) {
     if (widget_minimap_handle_mouse(m))
         return 1;
 
-    return image_buttons_handle_mouse(m, {sidebar_common_get_x_offset_expanded(), TOP_MENU_HEIGHT}, buttons_build, 17, 0);
+    return image_buttons_handle_mouse(m, {sidebar_common_get_x_offset_expanded(), top_menu_height()}, buttons_build, 17,
+      0);
 }
 
 int widget_sidebar_editor_handle_mouse_build_menu(const mouse* m) {
-    return image_buttons_handle_mouse(m, {sidebar_common_get_x_offset_expanded(), TOP_MENU_HEIGHT}, buttons_build, 17, 0);
+    return image_buttons_handle_mouse(m, {sidebar_common_get_x_offset_expanded(), top_menu_height()}, buttons_build, 17,
+      0);
 }
 
 int widget_sidebar_editor_handle_mouse_attributes(const mouse* m) {
-    return image_buttons_handle_mouse(m, {sidebar_common_get_x_offset_expanded(), TOP_MENU_HEIGHT}, buttons_build, 2, 0);
+    return image_buttons_handle_mouse(m, {sidebar_common_get_x_offset_expanded(), top_menu_height()}, buttons_build, 2,
+      0);
 }
 
 static void button_attributes(int show, int param2) {

@@ -854,6 +854,12 @@ int ui::label_colored(pcstr tx, vec2i pos, e_font font, color color, int box_wid
     return box_width > 0 ? box_width : text_get_width(tx, font);
 }
 
+int ui::label_scaled(pcstr tx, vec2i pos, e_font font, float scale) {
+    const vec2i offset = g_state.offset();
+    push(cmd_t::text_scaled, Pos{offset + pos}, Font{font}, TextColor{0}, Scale{scale}, Caption{tx ? tx : ""});
+    return (int)(text_get_width(tx, font) * scale);
+}
+
 const image_t* ui::eimage(int imgid, vec2i pos) {
     const vec2i offset = g_state.offset();
     push(cmd_t::image, Pos{pos + offset}, ImageId{imgid});

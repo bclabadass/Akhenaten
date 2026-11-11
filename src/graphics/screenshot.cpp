@@ -360,10 +360,10 @@ static void create_full_city_screenshot() {
     int base_height = image_set_loop_height_limits(mm_view.min.y, mm_view.max.y);
     int size;
     g_zoom.set_scale(100);
-    graphics_set_clip_rectangle({0, TOP_MENU_HEIGHT}, {canvas_width, canvas_height});
+    graphics_set_clip_rectangle({0, top_menu_height()}, {canvas_width, canvas_height});
 
     vec2i viewport_size = g_camera.size_pixels;
-    g_camera.set_screen_size(canvas_width + widget_sidebar_city_offset_max(), canvas_height + TOP_MENU_HEIGHT);
+    g_camera.set_screen_size(canvas_width + widget_sidebar_city_offset_max(), canvas_height + top_menu_height());
     int current_height = base_height;
 
     // draw_without_overlay() iterates global g_camera (not ctx.view), so each strip
@@ -387,7 +387,8 @@ static void create_full_city_screenshot() {
             g_camera.go_to_pixel(vec2i{mm_view.min.x + width, current_height}, false);
             g_render.clear_screen();
             g_screen_city.draw_without_overlay(local_context, 0);
-            g_render.save_screen_buffer(local_context, &canvas[width], x_offset, TOP_MENU_HEIGHT + y_offset, image_section_width, canvas_height - y_offset, city_canvas_pixels.x);
+            g_render.save_screen_buffer(local_context, &canvas[width], x_offset, top_menu_height() + y_offset,
+              image_section_width, canvas_height - y_offset, city_canvas_pixels.x);
         }
 
         if (!image_write_rows(canvas, city_canvas_pixels.x)) {
@@ -398,7 +399,7 @@ static void create_full_city_screenshot() {
         current_height += canvas_height;
     }
 
-    g_camera.set_screen_size(viewport_size.x + widget_sidebar_city_offset_max(), viewport_size.y + TOP_MENU_HEIGHT);
+    g_camera.set_screen_size(viewport_size.x + widget_sidebar_city_offset_max(), viewport_size.y + top_menu_height());
     g_zoom.set_scale(old_zoom);
 
     graphics_reset_clip_rectangle();

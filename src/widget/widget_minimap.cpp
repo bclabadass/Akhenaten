@@ -384,9 +384,9 @@ void widget_minimap_draw(vec2i offset, int force) {
 
 void widget_minimap_draw_border(int sidebar_x_offset) {
     const int left = sidebar_x_offset + MINIMAP_X_OFFSET - 1;
-    const int top = MINIMAP_Y_OFFSET - 1;
+    const int top = MINIMAP_Y_OFFSET + top_menu_height() - TOP_MENU_HEIGHT - 1;
     const int right = sidebar_x_offset + MINIMAP_X_OFFSET + g_minimap_window.size.x - 1;
-    const int bottom = MINIMAP_Y_OFFSET + g_minimap_window.draw_size.y;
+    const int bottom = MINIMAP_Y_OFFSET + top_menu_height() - TOP_MENU_HEIGHT + g_minimap_window.draw_size.y;
 
     graphics_draw_line(vec2i{left + 1, top}, vec2i{right, top}, COLOR_MINIMAP_DARK);
     graphics_draw_line(vec2i{left, top + 1}, vec2i{left, bottom}, COLOR_MINIMAP_DARK);

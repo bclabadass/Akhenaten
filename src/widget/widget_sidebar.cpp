@@ -89,7 +89,7 @@ void ui::sidebar_window_expanded_t::ui_draw_relief(UiFlags flags) {
     if (bg.enabled) {
         extra_h = bg.pxsize().y;
     }
-    int relief_y_offset = SIDEBAR_MAIN_SECTION_HEIGHT + TOP_MENU_HEIGHT + extra_h;
+    int relief_y_offset = SIDEBAR_MAIN_SECTION_HEIGHT + top_menu_height() + extra_h;
     sidebar_common_draw_relief({ x_offset, relief_y_offset }, relief_block);
 }
 
@@ -118,6 +118,7 @@ void ui::sidebar_window_expanded_t::ui_draw_foreground(UiFlags flags) {
     }
 
     ui.pos.x = x_offset;
+    ui.pos.y = top_menu_height() - TOP_MENU_HEIGHT;
 
     ui_draw_extra(flags);
 
@@ -125,7 +126,7 @@ void ui::sidebar_window_expanded_t::ui_draw_foreground(UiFlags flags) {
     const UiFlags wflags = is_disabled ? UiFlags_Readonly : UiFlags_None;
 
     ui.begin_widget(pos);
-    widget_minimap_draw({ x_offset + MINIMAP_X_OFFSET, MINIMAP_Y_OFFSET }, 0);
+    widget_minimap_draw({x_offset + MINIMAP_X_OFFSET, MINIMAP_Y_OFFSET + top_menu_height() - TOP_MENU_HEIGHT}, 0);
 
     ui.draw(wflags);
     widget_minimap_draw_border(x_offset);
@@ -187,6 +188,7 @@ void ui::sidebar_window_collapsed_t::ui_draw_foreground(UiFlags flags) {
     });
 
     ui.pos.x = x_offset;
+    ui.pos.y = top_menu_height() - TOP_MENU_HEIGHT;
 
     {
         OZZY_PROFILER_SECTION(_, "sidebar_window_draw")
@@ -202,7 +204,7 @@ void ui::sidebar_window_collapsed_t::ui_draw_foreground(UiFlags flags) {
     ui.draw(wflags);
     ui.end_widget();
 
-    int relief_y_offset = SIDEBAR_MAIN_SECTION_HEIGHT + TOP_MENU_HEIGHT;
+    int relief_y_offset = SIDEBAR_MAIN_SECTION_HEIGHT + top_menu_height();
     sidebar_common_draw_relief({ x_offset, relief_y_offset }, relief_block);
 }
 
@@ -271,7 +273,9 @@ void widget_sidebar_city_draw_foreground() {
 
 void widget_sidebar_city_draw_foreground_military() {
     widget_sidebar_city_draw_foreground();
-    widget_minimap_draw({screen_width() - sidebar_window_expanded.expanded_offset_x + MINIMAP_X_OFFSET, MINIMAP_Y_OFFSET}, 1);
+    widget_minimap_draw({screen_width() - sidebar_window_expanded.expanded_offset_x + MINIMAP_X_OFFSET,
+                          MINIMAP_Y_OFFSET + top_menu_height() - TOP_MENU_HEIGHT},
+      1);
     widget_minimap_draw_border(screen_width() - sidebar_window_expanded.expanded_offset_x);
 }
 

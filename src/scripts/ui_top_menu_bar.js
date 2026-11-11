@@ -41,7 +41,7 @@ function top_menu_measure_headers_right() {
 	var font = !!game_features.gameui_highlight_top_menu_hover ? FONT_NORMAL_YELLOW : FONT_NORMAL_BLACK_ON_LIGHT
 	for (var i = 0; i < menus.length; i++) {
 		var text = top_menu_resolve_text(menus[i].text)
-		cur_x += __ui_text_width(text, font) + spacing
+		cur_x += top_menu_text_width(text, font) + spacing
 	}
 	return cur_x - spacing
 }
@@ -58,7 +58,8 @@ function top_menu_update_status_shift() {
 		top_menu_state.status_shift = 0
 		return 0
 	}
-	top_menu_state.status_shift = top_menu_status_shift_for(screen.width, __platform_is_ios(), headers_right + gap, funds.right)
+	top_menu_state.status_shift = top_menu_status_shift_for(screen.width, __platform_is_ios(), headers_right + gap,
+		Math.round(funds.right * top_menu_scale()))
 	return top_menu_state.status_shift
 }
 
@@ -75,21 +76,30 @@ function top_menu_draw_background() {
 		return
 	}
 
+	var scale = top_menu_scale()
 	var want_sidebar_offset = top_menu_widget.sidebar_offset
 	var block_width = block_img.width
 	var screen_width = screen.width
 	var current_sidebar_offset = ui.sidebar.offset_x
 
-	var step = block_width - want_sidebar_offset
+	var step = Math.round((block_width - want_sidebar_offset) * scale)
 	if (step <= 0) {
 		return
 	}
 
-	for (var x = -(screen_width - current_sidebar_offset); x < screen_width; x += step) {
-		ui.draw_texture({ x: x, y: 0 }, block_img.tid)
+	function draw_block(x) {
+		if (scale == 1) {
+			ui.draw_texture({ x: x, y: 0 }, block_img.tid)
+		} else {
+			__ui_draw_image_scaled(block_img.tid, { x: x, y: 0 }, scale)
+		}
 	}
 
-	ui.draw_texture({ x: current_sidebar_offset - block_width + want_sidebar_offset, y: 0 }, block_img.tid)
+	for (var x = -(screen_width - current_sidebar_offset); x < screen_width; x += step) {
+		draw_block(x)
+	}
+
+	draw_block(current_sidebar_offset - step)
 
 	var rot = top_menu_widget.rotate_img
 	if (!rot) {
@@ -99,7 +109,12 @@ function top_menu_draw_background() {
 	if (!rotate_img) {
 		return
 	}
-	ui.draw_texture({ x: screen.width + top_menu_widget.rotate_x + top_menu_state.status_shift, y: 0 }, rotate_img.tid)
+	var rotate_pos = { x: screen.width + Math.round(top_menu_widget.rotate_x * scale) + top_menu_state.status_shift, y: 0 }
+	if (scale == 1) {
+		ui.draw_texture(rotate_pos, rotate_img.tid)
+	} else {
+		__ui_draw_image_scaled(rotate_img.tid, rotate_pos, scale)
+	}
 }
 
 function top_menu_draw_headers() {
@@ -109,7 +124,7 @@ function top_menu_draw_headers() {
 	}
 
 	var cur_x = top_menu_headers_x()
-	var cur_y = top_menu_widget.offset.y
+	var cur_y = Math.round(top_menu_widget.offset.y * top_menu_scale())
 	var spacing = top_menu_widget.spacing
 	var highlight = !!game_features.gameui_highlight_top_menu_hover
 	var hover_font = highlight ? FONT_NORMAL_YELLOW : FONT_NORMAL_BLACK_ON_LIGHT
@@ -117,7 +132,7 @@ function top_menu_draw_headers() {
 	var my = __mouse.y
 	var is_mobile = __platform_is_android() || __mouse.is_touch
 	var y0 = 0
-	var hit_h = is_mobile ? (top_menu_widget.height + 10) : top_menu_widget.height
+	var hit_h = is_mobile ? (__top_menu_height() + 10) : __top_menu_height()
 	var in_bar = (my >= y0 && my < y0 + hit_h)
 	var focus_id = ""
 	if (top_menu_state.open_sub_menu) {
@@ -128,7 +143,7 @@ function top_menu_draw_headers() {
 	for (var i = 0; i < menus.length; i++) {
 		var menu = menus[i]
 		var text = top_menu_resolve_text(menu.text)
-		var width = __ui_text_width(text, hover_font)
+		var width = top_menu_text_width(text, hover_font)
 		var x_start = cur_x
 		var x_end = cur_x + width
 		top_menu_set_header_layout(menu.id, x_start, x_end)
@@ -144,7 +159,7 @@ function top_menu_draw_headers() {
 		}
 
 		var font = (is_hovered && highlight) ? FONT_NORMAL_YELLOW : FONT_NORMAL_BLACK_ON_LIGHT
-		ui.label(text, { x: cur_x, y: cur_y }, font)
+		top_menu_label(text, { x: cur_x, y: cur_y }, font)
 
 		if (is_hovered && menu.tooltip && !top_menu_state.open_sub_menu) {
 			ui.set_tooltip(top_menu_resolve_text(menu.tooltip))
@@ -161,11 +176,12 @@ function top_menu_draw_headers() {
 }
 
 function top_menu_status_rect(cfg) {
+	var scale = top_menu_scale()
 	return {
-		x: screen.width + cfg.right + top_menu_state.status_shift,
-		y: top_menu_widget.offset.y,
-		w: cfg.w,
-		h: cfg.h
+		x: screen.width + Math.round(cfg.right * scale) + top_menu_state.status_shift,
+		y: Math.round(top_menu_widget.offset.y * scale),
+		w: Math.round(cfg.w * scale),
+		h: Math.round(cfg.h * scale)
 	}
 }
 
@@ -210,9 +226,9 @@ function top_menu_draw_status() {
 		ui.set_tooltip(__loc("#top_menu_funds_tooltip"))
 	}
 
-	ui.label(top_menu_state.date_str, { x: r.date.x, y: r.date.y }, FONT_NORMAL_BLACK_ON_LIGHT)
-	ui.label(top_menu_state.population_str, { x: r.pop.x, y: r.pop.y }, FONT_NORMAL_BLACK_ON_LIGHT)
-	ui.label(funds_text, { x: r.funds.x, y: r.funds.y }, funds_font)
+	top_menu_label(top_menu_state.date_str, { x: r.date.x, y: r.date.y }, FONT_NORMAL_BLACK_ON_LIGHT)
+	top_menu_label(top_menu_state.population_str, { x: r.pop.x, y: r.pop.y }, FONT_NORMAL_BLACK_ON_LIGHT)
+	top_menu_label(funds_text, { x: r.funds.x, y: r.funds.y }, funds_font)
 }
 
 // Touch screens have no Pause key within reach, so tapping the date pauses and resumes.

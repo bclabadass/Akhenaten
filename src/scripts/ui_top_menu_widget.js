@@ -30,6 +30,31 @@ function top_menu_dismiss() {
 	}
 }
 
+// The bar and its menus draw larger on the iPhone Duo's inner screen.
+function top_menu_scale() {
+	return __screen_inner_unfolded() ? top_menu_widget.unfolded_height / top_menu_widget.height : 1
+}
+
+function top_menu_text_scale() {
+	return __screen_inner_unfolded() ? top_menu_widget.unfolded_text_scale : 1
+}
+
+// The original bitmap font has no bold, so scaled text is drawn twice, a pixel apart.
+function top_menu_text_width(text, font) {
+	var s = top_menu_text_scale()
+	return s == 1 ? __ui_text_width(text, font) : Math.ceil(__ui_text_width(text, font) * s) + 1
+}
+
+function top_menu_label(text, pos, font) {
+	var s = top_menu_text_scale()
+	if (s == 1) {
+		ui.label(text, pos, font)
+		return
+	}
+	__ui_label_scaled(text, pos, font, s)
+	__ui_label_scaled(text, { x: pos.x + 1, y: pos.y }, font, s)
+}
+
 function widget_top_menu_clear_state() {
 	top_menu_clear_state()
 }
@@ -130,7 +155,7 @@ function top_menu_header_at_mouse() {
 	var my = __mouse.y
 	var is_mobile = __platform_is_android() || __mouse.is_touch
 	var y0 = 0
-	var y1 = is_mobile ? (top_menu_widget.height + 10) : top_menu_widget.height
+	var y1 = is_mobile ? (__top_menu_height() + 10) : __top_menu_height()
 	if (my < y0 || my >= y1) {
 		return ""
 	}
@@ -162,7 +187,8 @@ function top_menu_activate_item(menu, item) {
 
 function top_menu_calc_menu_size(menu) {
 	var max_width = 0
-	var height_pixels = top_menu_widget.item_height
+	var item_height = Math.round(top_menu_widget.item_height * top_menu_scale())
+	var height_pixels = item_height
 	var items = menu.items || []
 	for (var i = 0; i < items.length; i++) {
 		var item = items[i]
@@ -171,11 +197,11 @@ function top_menu_calc_menu_size(menu) {
 		}
 		var text = top_menu_item_text(item)
 		// Items draw in YELLOW on hover — size the panel for the wider hover font.
-		var width_pixels = __ui_text_width(text, FONT_NORMAL_YELLOW)
+		var width_pixels = top_menu_text_width(text, FONT_NORMAL_YELLOW)
 		if (width_pixels > max_width) {
 			max_width = width_pixels
 		}
-		height_pixels += top_menu_widget.item_height
+		height_pixels += item_height
 	}
 	var blocks = ((max_width + 16) / 16 | 0) + 1
 	if (blocks < 10) {
@@ -202,6 +228,8 @@ top_menu_widget {
 	spacing : 16
 	unfolded_edge_inset : 80
 	unfolded_min_width : 1000
+	unfolded_height : 50
+	unfolded_text_scale : 1.5
 	rotate_x : -170
 	rotate_img { pack:PACK_GENERAL, id:136, offset:72 }
 	status_header_gap : 16
@@ -339,10 +367,14 @@ function top_menu_submenu_ui_draw_foreground(window) {
 		return
 	}
 
-	__ui_unbordered_panel(layout.x_start, top_menu_widget.height, size.width_blocks, size.height_blocks)
+	var scale = top_menu_scale()
+	var bar_height = __top_menu_height()
+	__ui_unbordered_panel(layout.x_start, bar_height, size.width_blocks, size.height_blocks)
 
 	var sub = top_menu_widget.submenu_offset
-	var y_offset = top_menu_widget.height + top_menu_widget.offset.y * 2 + sub.y
+	var item_height = Math.round(top_menu_widget.item_height * scale)
+	var sub_x = Math.round(sub.x * scale)
+	var y_offset = bar_height + Math.round((top_menu_widget.offset.y * 2 + sub.y) * scale)
 	var items = menu.items || []
 	var focus_id = ""
 
@@ -353,9 +385,9 @@ function top_menu_submenu_ui_draw_foreground(window) {
 		}
 
 		var text = top_menu_item_text(item)
-		var item_x = layout.x_start + sub.x
+		var item_x = layout.x_start + sub_x
 		var btn_pos = { x: layout.x_start, y: y_offset - 2 }
-		var btn_size = { x: 16 * size.width_blocks, y: 19 }
+		var btn_size = { x: 16 * size.width_blocks, y: item_height - 1 }
 		var hovered = (__mouse.x >= btn_pos.x && __mouse.x < btn_pos.x + btn_size.x
 			&& __mouse.y >= btn_pos.y && __mouse.y < btn_pos.y + btn_size.y)
 		if (hovered) {
@@ -363,10 +395,14 @@ function top_menu_submenu_ui_draw_foreground(window) {
 		}
 
 		var font = (item.id == focus_id) ? FONT_NORMAL_YELLOW : FONT_NORMAL_BLACK_ON_LIGHT
+		var scaled = scale != 1
+		if (scaled) {
+			top_menu_label(text, { x: item_x, y: y_offset + Math.round((item_height - 11 * top_menu_text_scale()) / 2) }, font)
+		}
 		var clicked = ui.button({
-			text: text,
+			text: scaled ? "" : text,
 			pos: [item_x, y_offset],
-			size: [btn_size.x - sub.x, top_menu_widget.item_height],
+			size: [btn_size.x - sub_x, item_height],
 			font: font,
 			border: false,
 			body: false,
@@ -379,7 +415,7 @@ function top_menu_submenu_ui_draw_foreground(window) {
 			return
 		}
 
-		y_offset += top_menu_widget.item_height
+		y_offset += item_height
 	}
 
 	top_menu_state.focus_sub_menu_id = focus_id

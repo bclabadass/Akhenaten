@@ -118,6 +118,10 @@ void __ui_label_colored(pcstr text, vec2i pos, int font, unsigned int c) {
     ui::label_colored(text, pos, (e_font)font, (color)c);
 }
 ANK_FUNCTION_4(__ui_label_colored);
+void __ui_label_scaled(pcstr text, vec2i pos, int font, float scale) {
+    ui::label_scaled(text, pos, (e_font)font, scale);
+}
+ANK_FUNCTION_4(__ui_label_scaled);
 
 void __ui_set_tooltip(pcstr text) {
     ui::set_tooltip(text ? text : "");

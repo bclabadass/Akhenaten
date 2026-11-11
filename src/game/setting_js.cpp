@@ -104,9 +104,19 @@ bool __platform_is_android() {
 ANK_FUNCTION(__platform_is_android)
 
 bool __platform_is_ios() {
-    return platform.is_ios();
+    return screen_is_ios();
 }
 ANK_FUNCTION(__platform_is_ios)
+
+bool __screen_inner_unfolded() {
+    return screen_inner_unfolded();
+}
+ANK_FUNCTION(__screen_inner_unfolded)
+
+int __top_menu_height() {
+    return top_menu_height();
+}
+ANK_FUNCTION(__top_menu_height)
 
 int __display_options_get_scale() {
     return g_platform_screen.get_scale();

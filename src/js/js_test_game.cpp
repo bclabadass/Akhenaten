@@ -2358,6 +2358,17 @@ static int __test_population_yearly_births() {
 }
 ANK_FUNCTION(__test_population_yearly_births);
 
+// Lets the Mac run the iPhone layout: the inner-screen top menu needs iOS and a wide screen.
+static void __test_pretend_ios(bool on) {
+    screen_pretend_ios(on);
+}
+ANK_FUNCTION_1(__test_pretend_ios);
+
+static int __test_viewport_y() {
+    return g_camera.offset.y;
+}
+ANK_FUNCTION(__test_viewport_y);
+
 static int __test_house_population(int bid) {
     building *b = building_get(bid);
     auto *house = (b && b->is_valid()) ? b->dcast_house() : nullptr;

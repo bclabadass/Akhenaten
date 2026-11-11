@@ -7,7 +7,7 @@
 #include "game/game.h"
 
 int sidebar_common_get_height() {
-    return screen_height() - TOP_MENU_HEIGHT;
+    return screen_height() - top_menu_height();
 }
 
 void sidebar_common_draw_relief(vec2i offset, image_desc desc) {
