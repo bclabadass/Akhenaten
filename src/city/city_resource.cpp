@@ -312,23 +312,22 @@ void city_resource_determine_available() {
     }
 
     for (const auto &r : resource_list::all) {
-        if (g_city.can_produce_resource(r.type) || g_empire.can_import_resource(r.type, false)) {
-            g_available_data.resources[r.type] = 1;
-            switch (r.type) {
-            case RESOURCE_POTTERY:
-            case RESOURCE_BEER:
-            case RESOURCE_LINEN:
-            case RESOURCE_LUXURY_GOODS:
-                g_available_data.market_goods[r.type] = 1;
-                break;
-            }
+        const e_resource raw = get_raw_resource(r.type);
+        const bool obtainable
+          = g_city.can_produce_resource(r.type) || g_empire.can_import_resource(r.type, false)
+            || (raw != r.type && (g_city.can_produce_resource(raw) || g_empire.can_import_resource(raw, false)));
+        if (!obtainable) {
+            continue;
         }
 
-        const e_resource raw = get_raw_resource(r.type);
-        if (raw != r.type) {
-            if (g_city.can_produce_resource(raw) || g_empire.can_import_resource(raw, false)) {
-                g_available_data.resources[r.type] = 1;
-            }
+        g_available_data.resources[r.type] = 1;
+        switch (r.type) {
+        case RESOURCE_POTTERY:
+        case RESOURCE_BEER:
+        case RESOURCE_LINEN:
+        case RESOURCE_LUXURY_GOODS:
+            g_available_data.market_goods[r.type] = 1;
+            break;
         }
     }
 }
