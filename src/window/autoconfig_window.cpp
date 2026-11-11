@@ -15,8 +15,11 @@
 #include "core/system_time.h"
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 #include <mutex>
 
 using autoconfig_windows = std::unordered_map<xstring, autoconfig_window *>;
@@ -91,7 +94,7 @@ static size_t script_block_end(const std::string& s, size_t open) {
     return std::string::npos;
 }
 
-// Finds each window's top-level `name { ... }` block in a script and keeps its text.
+// Finds each top-level `name { ... }` block in a script and keeps its text.
 static void collect_layout_blocks(const std::string& s, std::unordered_map<xstring, std::string>& blocks) {
     int depth = 0;
     for (size_t i = 0; i < s.size();) {
@@ -112,8 +115,15 @@ static void collect_layout_blocks(const std::string& s, std::unordered_map<xstri
             while (open < s.size() && isspace((unsigned char)s[open])) {
                 ++open;
             }
+            // Also `name = { ... }`, as some windows are written.
+            if (open + 1 < s.size() && s[open] == '=' && s[open + 1] != '=') {
+                ++open;
+                while (open < s.size() && isspace((unsigned char)s[open])) {
+                    ++open;
+                }
+            }
             const xstring name(s.substr(i, end - i).c_str());
-            if (open < s.size() && s[open] == '{' && autoconfig_registry().count(name)) {
+            if (open < s.size() && s[open] == '{') {
                 const size_t close = script_block_end(s, open);
                 if (close == std::string::npos) {
                     return;
@@ -127,6 +137,39 @@ static void collect_layout_blocks(const std::string& s, std::unordered_map<xstri
         }
         ++i;
     }
+}
+
+// Names a block copies its ui from with `baseui(name, ...)`.
+static std::vector<xstring> layout_templates_used_by(const std::string& block) {
+    std::vector<xstring> names;
+    constexpr const char* call = "baseui(";
+    for (size_t at = block.find(call); at != std::string::npos; at = block.find(call, at + 1)) {
+        size_t i = at + strlen(call);
+        while (i < block.size() && isspace((unsigned char)block[i])) {
+            ++i;
+        }
+        size_t end = i;
+        while (end < block.size() && (isalnum((unsigned char)block[end]) || block[end] == '_')) {
+            ++end;
+        }
+        if (end > i) {
+            names.emplace_back(block.substr(i, end - i).c_str());
+        }
+    }
+    return names;
+}
+
+// Templates come before the windows built from them, so the windows copy refreshed positions.
+static void order_layout_refresh(const xstring& name, const std::unordered_map<xstring, std::string>& blocks,
+  std::unordered_set<xstring>& seen, std::vector<xstring>& order) {
+    auto block = blocks.find(name);
+    if (block == blocks.end() || !seen.insert(name).second) {
+        return;
+    }
+    for (const xstring& base : layout_templates_used_by(block->second)) {
+        order_layout_refresh(base, blocks, seen, order);
+    }
+    order.push_back(name);
 }
 
 static void shift_elements_for_screen(archive arch, ui::element::items& elements, const xstring& parent) {
@@ -154,28 +197,33 @@ void autoconfig_window::refresh_layout_for_screen() {
     std::unordered_map<xstring, std::string> blocks;
     js_vm_for_each_loaded_script([&](const std::string& source) { collect_layout_blocks(source, blocks); });
 
-    int refreshed = 0;
+    std::unordered_set<xstring> seen;
+    std::vector<xstring> order;
     for (auto& entry : autoconfig_registry()) {
-        auto block = blocks.find(entry.first);
-        if (block == blocks.end()) {
-            continue;
-        }
-        const std::string source = std::string(temp_name) + " " + block->second;
+        order_layout_refresh(entry.first, blocks, seen, order);
+    }
+
+    int refreshed = 0;
+    for (const xstring& name : order) {
+        const std::string source = std::string(temp_name) + " " + blocks[name];
         if (!js_vm_exec_source("layout_refresh", source.c_str())) {
-            logs::error("layout refresh: could not evaluate %s", entry.first.c_str());
+            logs::error("layout refresh: could not evaluate %s", name.c_str());
             continue;
         }
-        autoconfig_window* w = entry.second;
-        g_config_arch.r_section(temp_name, [w](archive arch) {
-            const vec2i fresh = arch.r_vec2i("pos");
-            w->pos = w->pos + (fresh - w->config_pos);
-            w->config_pos = fresh;
-            shift_elements_for_screen(arch, w->elements, xstring());
-        });
-        // Later config reloads (the Editor, a language change) read the stored object.
-        const std::string store = std::string("__layout_store(") + entry.first.c_str() + ", __layout_refresh)";
+        auto window = autoconfig_registry().find(name);
+        if (window != autoconfig_registry().end()) {
+            autoconfig_window* w = window->second;
+            g_config_arch.r_section(temp_name, [w](archive arch) {
+                const vec2i fresh = arch.r_vec2i("pos");
+                w->pos = w->pos + (fresh - w->config_pos);
+                w->config_pos = fresh;
+                shift_elements_for_screen(arch, w->elements, xstring());
+            });
+            ++refreshed;
+        }
+        // Templates and later config reloads (the Editor, a language change) read the stored object.
+        const std::string store = std::string("__layout_store(") + name.c_str() + ", __layout_refresh)";
         js_vm_exec_source("layout_refresh", store.c_str());
-        ++refreshed;
     }
     js_vm_exec_source("layout_refresh", "__layout_refresh = undefined");
     logs::info("[layout] refreshed %d windows in %u ms", refreshed, (unsigned)(time_get_millis() - started));
