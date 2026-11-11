@@ -603,8 +603,8 @@ void js_unref_function(xstring onclick_ref) {
 static pcstr js_error_message(js_State *J, int idx) {
     // Error objects are not JS strings; js_toxstring would yield empty/(null) in logs.
     static js_StringNode property_message = js_intern("message");
+    // hasproperty leaves the property's value on the stack when it finds it.
     if (J->isobject(idx) && J->hasproperty(idx, property_message)) {
-        J->getproperty(idx, property_message);
         pcstr msg = js_strnode_cstr(js_tostring(J, -1));
         js_pop(J, 1);
         if (msg && msg[0]) {

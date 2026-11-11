@@ -111,6 +111,10 @@ function granary_orders_window_init(window) {
     if (!granary_orders_window.granary) {
         granary_orders_window.granary = city.get_food_mill(bid)
     }
+    if (!granary_orders_window.granary) {
+        log_info("granary_orders_window: no granary or food mill for bid " + bid + " (grid_offset "
+            + city.object_info.grid_offset + ", window " + __game_window_get_id() + ")")
+    }
 
     window.goods_list.clear()
     for (var name in city.resources.available_foods) {

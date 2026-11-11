@@ -159,8 +159,8 @@ static js_StringNode property_stackTrace = js_intern("stackTrace");
 static void js_vm_log_stacktrace(js_State *J) {
     // Try to get stack trace from error object if it's an Error
     if (J->isobject(-1)) {
+        // hasproperty leaves the property's value on the stack when it finds it.
         if (J->hasproperty(-1, property_stackTrace)) {
-            J->getproperty(-1, property_stackTrace);
             if (J->isstring(-1)) {
                 auto stack_trace = js_tostring(J, -1);
                 logs::info("!!! Stack trace: %s", stack_trace->value.c_str());
@@ -311,7 +311,6 @@ int js_vm_trypcall_keep_result(js_State *J, int params) {
         // Log error type if it's an Error object
         if (J->isobject(-1)) {
             if (J->hasproperty(-1, property_name)) {
-                J->getproperty(-1, property_name);
                 auto error_name = js_tostring(J, -1);
                 pcstr en = js_strnode_cstr(error_name);
                 logs::info("!!! Error type: %s", en && en[0] ? en : "<unknown>");

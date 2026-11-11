@@ -3625,6 +3625,37 @@ int __test_info_ui_enabled(pcstr element_id) {
 }
 ANK_FUNCTION_1(__test_info_ui_enabled);
 
+static vec2i __test_info_ui_screen_pos(pcstr element_id) {
+    object_info &context = common_info_window::get_object_info();
+    if (!element_id || !*element_id || !context.ui || !context.ui->contains(element_id)) {
+        return vec2i{-1, -1};
+    }
+    return (*context.ui)[element_id].screen_pos();
+}
+ANK_FUNCTION_1(__test_info_ui_screen_pos);
+
+// Values a window element's textfn leaves on the MuJS stack over `calls` calls. Measured here because
+// a script caller would discard them when this native call returns.
+static int __test_window_textfn_stack_growth(xstring section, xstring id, int calls) {
+    autoconfig_window *w = autoconfig_window::find(section);
+    if (!w || !w->contains(id)) {
+        return -1;
+    }
+    const xstring &ref = (*w)[id].js_ref(ui::element::TEXTFN);
+    if (ref.empty()) {
+        return -1;
+    }
+    js_State *J = js_vm_state();
+    const int top = J->top;
+    for (int i = 0; i < calls; ++i) {
+        js_call_function(ref, 0, 0);
+    }
+    const int growth = J->top - top;
+    J->top = top;
+    return growth;
+}
+ANK_FUNCTION_3(__test_window_textfn_stack_growth);
+
 static e_building_type test_mastaba_params_type(building *head) {
     switch (head->type) {
     case BUILDING_MEDIUM_MASTABA:
