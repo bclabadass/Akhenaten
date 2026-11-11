@@ -146,7 +146,7 @@ When copying game data from a desktop install, leave out `akhenaten.conf`: the g
 ### Nekhen playtest bugs (Brendan, 2026-11-10; not yet prioritized or investigated; the granary Orders bug is to-do #1)
 - **Game meat shows as fish** in the granary (its icon).
 - **Stored grain draws as granary pylons** in Nekhen's granary.
-- **Nekhen: objectives look met but no victory.** Second report of this; see "A clearly earned victory that doesn't trigger" below.
+- **Nekhen: objectives look met but no victory.** Repro save: `Save/Duoaoh/tbd 2.svx` on the Duo (2026-11-10, 1:36 AM), where the victory is expected. Second report of this; see "A clearly earned victory that doesn't trigger" below.
 - **Housing instability** in Nekhen and Perwadjyt: houses evolve and devolve back and forth, with entertainment coverage unstable in Perwadjyt.
 - **Emigration with unoccupied houses**, and emigration in Perwadjyt. See "Emigration with nothing obvious wrong" below.
 - **Perwadjyt: the Bazaar can't stop buying pottery**, even though pottery is available in that mission.
