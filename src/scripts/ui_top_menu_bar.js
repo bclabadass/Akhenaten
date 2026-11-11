@@ -215,6 +215,11 @@ function top_menu_draw_status() {
 	ui.label(funds_text, { x: r.funds.x, y: r.funds.y }, funds_font)
 }
 
+// Touch screens have no Pause key within reach, so tapping the date pauses and resumes.
+function top_menu_date_tap_pauses() {
+	return __platform_is_ios() || __platform_is_android()
+}
+
 function top_menu_handle_status() {
 	var r = top_menu_status_rects()
 	var mx = __mouse.x
@@ -234,6 +239,10 @@ function top_menu_handle_status() {
 	}
 	if (top_menu_point_in(mx, my, r.date) && __mouse.right.went_up) {
 		top_menu_date_explanation()
+		return 1
+	}
+	if (top_menu_point_in(mx, my, r.date) && __mouse.left.went_up && top_menu_date_tap_pauses()) {
+		emit event_toggle_pause{ value: 0 }
 		return 1
 	}
 	if (top_menu_point_in(mx, my, r.pop) && __mouse.right.went_up) {
