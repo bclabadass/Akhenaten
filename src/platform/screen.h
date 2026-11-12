@@ -46,3 +46,18 @@ private:
 };
 
 extern platform_screen_t g_platform_screen;
+
+// The iPhone Duo's screens, told apart by the window's size in points.
+enum e_ios_screen { IOS_SCREEN_UNKNOWN = -1, IOS_SCREEN_FOLDED, IOS_SCREEN_INNER_LANDSCAPE, IOS_SCREEN_INNER_PORTRAIT };
+e_ios_screen ios_screen_for(int width, int height);
+
+struct ios_screen_tracker_t {
+    e_ios_screen current = IOS_SCREEN_UNKNOWN;
+    bool tall = false;
+    bool landscape_sidebar_collapsed = false;
+
+    // On a move between the screens or a turn of the inner one: sets the sidebar and the allowed
+    // orientations, and returns the display scale to switch to, or 0 to keep the current one.
+    int on_window_size(int width, int height);
+};
+extern ios_screen_tracker_t g_ios_screen;

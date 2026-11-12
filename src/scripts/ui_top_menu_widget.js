@@ -10,6 +10,7 @@ top_menu_state = {
 	rotate_hover: 0
 	headers_right: 0
 	status_shift: 0
+	portrait_status: null
 	header_layout: {}
 	menu_size: {}
 	item_enabled: {}
@@ -161,6 +162,9 @@ function top_menu_header_at_mouse() {
 	}
 	var padding_x = is_mobile ? 12 : 6
 	for (var i = 0; i < menus.length; i++) {
+		if (!top_menu_header_visible(menus[i])) {
+			continue
+		}
 		var layout = top_menu_header_layout(menus[i].id)
 		if (layout && (layout.x_start - padding_x) <= mx && (layout.x_end + padding_x) > mx) {
 			return menus[i].id
@@ -220,6 +224,14 @@ function top_menu_calc_menu_size(menu) {
 // The iPhone Duo's inner screen (screen_inner_unfolded): pop-up windows and the title screen are drawn this much larger.
 inner_screen {
 	popup_scale : 1.5
+	// Fixed-size pop-ups too wide for the portrait screen at popup_scale, with their widths: drawn just small enough to fit.
+	portrait_fit {
+		trade_prices_window { width : 896 }
+		window_scenario_selection { width : 1024 }
+		window_scenario_selection_campaign { width : 1024 }
+		window_scenario_selection_custom { width : 1024 }
+		mission_choice_window { width : 1024 }
+	}
 }
 
 top_menu_widget {
@@ -232,12 +244,13 @@ top_menu_widget {
 	sidebar_offset : 158
 	spacing : 16
 	unfolded_edge_inset : 80
-	unfolded_min_width : 1000
+	unfolded_min_short_side : 900
 	unfolded_height : 50
 	unfolded_text_scale : 1.5
 	rotate_x : -170
 	rotate_img { pack:PACK_GENERAL, id:136, offset:72 }
 	status_header_gap : 16
+	portrait_status_gap : 8
 	status_date { right: -110, w: 117, h: 20 }
 	status_pop { right: -310, w: 117, h: 20 }
 	status_funds { right: -440, w: 117, h: 20 }
@@ -311,6 +324,7 @@ top_menu_widget {
 		{
 			id: "debug"
 			text: "#top_menu_debug"
+			portrait_hidden: true
 			items [
 				{ id: "properties", textfn: top_menu_debug_properties_text }
 				{ id: "terrain_paint", textfn: top_menu_debug_terrain_paint_text }
@@ -324,6 +338,7 @@ top_menu_widget {
 		{
 			id: "debug_render"
 			text: "#top_menu_debug_render"
+			portrait_hidden: true
 			items [
 				{ id: "buildings", textfn: top_menu_debug_buildings_text }
 			]

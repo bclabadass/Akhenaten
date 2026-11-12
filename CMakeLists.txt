@@ -404,14 +404,18 @@ if(NOT WIN_EMSCRIPTEN)
     # UIApplicationSceneManifest. Skipping patches already applied makes this safe to rerun.
     if(IOS)
         find_package(Git REQUIRED)
-        # Each patch is detected by a symbol it adds: the second one edits text next to the first,
-        # so a reverse check of the first fails once both are applied.
-        file(READ "${SDL2_SOURCE_DIR}/src/video/uikit/SDL_uikitappdelegate.m" SDL2_IOS_DELEGATE_SOURCE)
-        foreach(SDL2_IOS_PATCH_ENTRY "ios-uiscene|SDLUIKitSceneDelegate" "ios-scene-refit|SDL_UIKitRefitSceneWindows")
+        # Each patch is detected by a symbol it adds to a file: the second one edits text next to the
+        # first, so a reverse check of the first fails once both are applied.
+        foreach(SDL2_IOS_PATCH_ENTRY
+                "ios-uiscene|SDL_uikitappdelegate.m|SDLUIKitSceneDelegate"
+                "ios-scene-refit|SDL_uikitappdelegate.m|SDL_UIKitRefitSceneWindows"
+                "ios-orientations|SDL_uikitviewcontroller.m|SDL_OrientationsHintChanged")
             string(REPLACE "|" ";" SDL2_IOS_PATCH_PARTS "${SDL2_IOS_PATCH_ENTRY}")
             list(GET SDL2_IOS_PATCH_PARTS 0 SDL2_IOS_PATCH_NAME)
-            list(GET SDL2_IOS_PATCH_PARTS 1 SDL2_IOS_PATCH_SYMBOL)
-            string(FIND "${SDL2_IOS_DELEGATE_SOURCE}" "${SDL2_IOS_PATCH_SYMBOL}" SDL2_IOS_PATCH_FOUND)
+            list(GET SDL2_IOS_PATCH_PARTS 1 SDL2_IOS_PATCH_FILE)
+            list(GET SDL2_IOS_PATCH_PARTS 2 SDL2_IOS_PATCH_SYMBOL)
+            file(READ "${SDL2_SOURCE_DIR}/src/video/uikit/${SDL2_IOS_PATCH_FILE}" SDL2_IOS_PATCH_SOURCE)
+            string(FIND "${SDL2_IOS_PATCH_SOURCE}" "${SDL2_IOS_PATCH_SYMBOL}" SDL2_IOS_PATCH_FOUND)
             if(SDL2_IOS_PATCH_FOUND EQUAL -1)
                 set(SDL2_IOS_PATCH "${CMAKE_SOURCE_DIR}/cmake/patches/sdl2-${SDL2_VERSION}-${SDL2_IOS_PATCH_NAME}.patch")
                 execute_process(

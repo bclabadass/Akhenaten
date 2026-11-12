@@ -113,6 +113,11 @@ bool __screen_inner_unfolded() {
 }
 ANK_FUNCTION(__screen_inner_unfolded)
 
+bool __screen_portrait() {
+    return screen_portrait();
+}
+ANK_FUNCTION(__screen_portrait)
+
 int __top_menu_height() {
     return top_menu_height();
 }

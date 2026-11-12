@@ -1,0 +1,51 @@
+diff --git a/src/video/uikit/SDL_uikitviewcontroller.m b/src/video/uikit/SDL_uikitviewcontroller.m
+index dee4b1972..02adade40 100644
+--- a/src/video/uikit/SDL_uikitviewcontroller.m
++++ b/src/video/uikit/SDL_uikitviewcontroller.m
+@@ -64,6 +64,26 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
+ }
+ #endif
+ 
++#if !TARGET_OS_TV
++/* iOS 16 and later only ask a view controller for its orientations again once told they changed,
++ * so an app that changes SDL_HINT_ORIENTATIONS at run time (a foldable allowing portrait on its
++ * large screen only) has to say so. iOS then rotates to an allowed orientation if needed. Hint
++ * callbacks run before SDL stores the new value, and iOS asks at once, so tell it on the next
++ * turn of the run loop. */
++static void SDLCALL
++SDL_OrientationsHintChanged(void *userdata, const char *name, const char *oldValue, const char *hint)
++{
++    @autoreleasepool {
++        SDL_uikitviewcontroller *viewcontroller = (__bridge SDL_uikitviewcontroller *) userdata;
++        if (@available(iOS 16.0, *)) {
++            dispatch_async(dispatch_get_main_queue(), ^{
++                [viewcontroller setNeedsUpdateOfSupportedInterfaceOrientations];
++            });
++        }
++    }
++}
++#endif
++
+ @implementation SDLUITextField : UITextField
+ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+ {
+@@ -117,6 +137,9 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
+         SDL_AddHintCallback(SDL_HINT_IOS_HIDE_HOME_INDICATOR,
+                             SDL_HideHomeIndicatorHintChanged,
+                             (__bridge void *) self);
++        SDL_AddHintCallback(SDL_HINT_ORIENTATIONS,
++                            SDL_OrientationsHintChanged,
++                            (__bridge void *) self);
+ #endif
+ 
+         /* Enable high refresh rates on iOS
+@@ -152,6 +175,9 @@ SDL_HideHomeIndicatorHintChanged(void *userdata, const char *name, const char *o
+     SDL_DelHintCallback(SDL_HINT_IOS_HIDE_HOME_INDICATOR,
+                         SDL_HideHomeIndicatorHintChanged,
+                         (__bridge void *) self);
++    SDL_DelHintCallback(SDL_HINT_ORIENTATIONS,
++                        SDL_OrientationsHintChanged,
++                        (__bridge void *) self);
+ #endif
+ }
+ 

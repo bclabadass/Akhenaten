@@ -18,7 +18,9 @@
 #include "resource/icons.h"
 
 #include "SDL.h"
+#include "js/js_game.h"
 
+#include <cstdio>
 #include <stdlib.h>
 
 platform_screen_t g_platform_screen;
@@ -212,15 +214,10 @@ bool platform_screen_t::resize(int pixel_width, int pixel_height, int save) {
 #endif
 
 #if defined(GAME_PLATFORM_IOS)
-    // iPhone Duo inner screen: a 3x display, so 67% draws the game at about 2x and fits more city.
-    // Only applied on crossing between the screens, so the Display options slider keeps working.
-    static int last_unfolded = -1;
-    const int short_side = SDL_min(pixel_width, pixel_height);
-    const int unfolded = (short_side >= 600 && short_side < 700) ? 1 : 0;
-    if (unfolded != last_unfolded) {
-        last_unfolded = unfolded;
-        set_scale_percentage(unfolded ? 67 : 100, pixel_width, pixel_height);
-        g_camera.sidebar_collapsed = !unfolded;
+    // The window itself: at startup the size passed in is the saved one, possibly the other screen's.
+    const vec2i window_size = get_window_size();
+    if (const int scale = g_ios_screen.on_window_size(window_size.x, window_size.y)) {
+        set_scale_percentage(scale, pixel_width, pixel_height);
     }
 #endif
 
@@ -229,8 +226,8 @@ bool platform_screen_t::resize(int pixel_width, int pixel_height, int save) {
 
 #if defined(GAME_PLATFORM_IOS)
     const vec2i actual = get_window_size();
-    logs::info("platform::ios: resize to %dx%d, window is %dx%d, scale %d%%, canvas %dx%d", pixel_width, pixel_height,
-      actual.x, actual.y, scale_percentage, logical_width, logical_height);
+    logs::info("platform::ios: resize to %dx%d, window is %dx%d, scale %d%%, canvas %dx%d, orientation %d", pixel_width,
+      pixel_height, actual.x, actual.y, scale_percentage, logical_width, logical_height, (int)SDL_GetDisplayOrientation(0));
 #endif
 
     if (save) {
@@ -244,6 +241,57 @@ bool platform_screen_t::resize(int pixel_width, int pixel_height, int save) {
     }
 
     return false;
+}
+
+ios_screen_tracker_t g_ios_screen;
+
+e_ios_screen ios_screen_for(int width, int height) {
+    const int short_side = SDL_min(width, height);
+    if (short_side < 600 || short_side >= 700) {
+        return IOS_SCREEN_FOLDED;
+    }
+    return height > width ? IOS_SCREEN_INNER_PORTRAIT : IOS_SCREEN_INNER_LANDSCAPE;
+}
+
+int ios_screen_tracker_t::on_window_size(int width, int height) {
+    const e_ios_screen next = ios_screen_for(width, height);
+    const bool was_tall = tall;
+    tall = height > width;
+    if (next == IOS_SCREEN_FOLDED) {
+        // The folded screen is landscape only. Leaving portrait, iOS picks a landscape itself, so until
+        // the window is landscape only the preferred one is allowed: the phone's right side at the bottom.
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, tall ? "LandscapeLeft" : "LandscapeLeft LandscapeRight");
+    }
+    if (next == current) {
+        // Launched folded and held upright, the window is briefly portrait before iOS turns it to
+        // landscape; the scale picked for that shape doesn't suit the landscape one.
+        return (next == IOS_SCREEN_FOLDED && tall != was_tall) ? 100 : 0;
+    }
+
+    const e_ios_screen prev = current;
+    current = next;
+    if (prev == IOS_SCREEN_INNER_LANDSCAPE) {
+        landscape_sidebar_collapsed = g_camera.sidebar_collapsed;
+    }
+
+    if (next != IOS_SCREEN_FOLDED) {
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight Portrait");
+    }
+
+    if (next == IOS_SCREEN_FOLDED) {
+        g_camera.sidebar_collapsed = true;
+        return 100;
+    }
+
+    // The inner screen is a 3x display, so 67% draws the game at about 2x and fits more city. Only
+    // set on crossing between the screens, so the Display options slider keeps working.
+    const bool from_folded = (prev == IOS_SCREEN_FOLDED || prev == IOS_SCREEN_UNKNOWN);
+    if (from_folded) {
+        landscape_sidebar_collapsed = false;
+    }
+    // Portrait is too narrow for the sidebar; turning back restores it as it was.
+    g_camera.sidebar_collapsed = (next == IOS_SCREEN_INNER_PORTRAIT) ? true : landscape_sidebar_collapsed;
+    return from_folded ? 67 : 0;
 }
 
 vec2i platform_screen_t::get_window_size() const {
@@ -409,3 +457,22 @@ vec2i platform_screen_t::get_max_resolution() {
     return {scale_pixels_to_logical(mode.w), scale_pixels_to_logical(mode.h)};
 }
 
+static xstring __test_ios_screen_window(int width, int height) {
+    const int scale = g_ios_screen.on_window_size(width, height);
+    char out[128];
+    const char *hint = SDL_GetHint(SDL_HINT_ORIENTATIONS);
+    snprintf(out, sizeof(out), "%d,%d,%d,%s", (int)g_ios_screen.current, scale, g_camera.sidebar_collapsed ? 1 : 0, hint ? hint : "");
+    return xstring(out);
+}
+ANK_FUNCTION_2(__test_ios_screen_window)
+
+static void __test_ios_screen_reset() {
+    g_ios_screen = ios_screen_tracker_t();
+}
+ANK_FUNCTION(__test_ios_screen_reset)
+
+// Lays the game out for a window of this size (in pixels before the display scale), as a resize event would.
+static void __test_screen_resize(int width, int height) {
+    g_platform_screen.resize(width, height, 0);
+}
+ANK_FUNCTION_2(__test_screen_resize)

@@ -32,7 +32,7 @@ function run_test() {
         __log_marker('desktop_link_keeps_text')
     }
 
-    // A canvas under inner_screen.unfolded_min_width wide, like the folded screen.
+    // A canvas whose short side is under top_menu_widget.unfolded_min_short_side, like the folded screen.
     __display_options_set_scale(150)
     __test_pretend_ios(true)
     __test_pump_frames(4)

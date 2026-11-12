@@ -46,6 +46,14 @@ float window_ui_scale_for(xstring id) {
     if (strncmp(id.c_str(), "window_editor", 13) == 0) {
         return 1.0f;
     }
+
+    // Portrait: a fixed-size pop-up too wide for the screen at this scale is drawn just small enough to fit.
+    if (screen_portrait()) {
+        const int width = screen_portrait_fit_width(id);
+        if (width > 0 && width * scale > g_screen.full.x) {
+            return g_screen.full.x / (float)width;
+        }
+    }
     return scale;
 }
 

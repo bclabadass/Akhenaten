@@ -8,6 +8,8 @@
 #include "window.h"
 #include "js/js_game.h"
 #include "platform/platform.h"
+#include <algorithm>
+#include <unordered_map>
 
 screen_t g_screen;
 
@@ -30,10 +32,11 @@ namespace {
     struct top_menu_sizes_t {
         int height = 30;
         int unfolded_height = 30;
-        int unfolded_min_width = 1000;
+        int unfolded_min_short_side = 900;
     };
     top_menu_sizes_t g_top_menu_sizes;
     float g_popup_scale = 1.0f;
+    std::unordered_map<xstring, int> g_portrait_fit_widths;
     bool g_pretend_ios = false;
 } // namespace
 
@@ -41,9 +44,14 @@ void ANK_REGISTER_CONFIG_ITERATOR(config_load_top_menu_sizes) {
     g_config_arch.r_section("top_menu_widget", [](archive arch) {
         g_top_menu_sizes.height = arch.r_int("height", 30);
         g_top_menu_sizes.unfolded_height = arch.r_int("unfolded_height", g_top_menu_sizes.height);
-        g_top_menu_sizes.unfolded_min_width = arch.r_int("unfolded_min_width", 1000);
+        g_top_menu_sizes.unfolded_min_short_side = arch.r_int("unfolded_min_short_side", 900);
     });
-    g_config_arch.r_section("inner_screen", [](archive arch) { g_popup_scale = arch.r_float("popup_scale", 1.0f); });
+    g_config_arch.r_section("inner_screen", [](archive arch) {
+        g_popup_scale = arch.r_float("popup_scale", 1.0f);
+        g_portrait_fit_widths.clear();
+        arch.r_objects("portrait_fit",
+          [](pcstr id, archive window) { g_portrait_fit_widths[xstring(id)] = window.r_int("width"); });
+    });
 }
 
 void screen_pretend_ios(bool on) {
@@ -56,7 +64,16 @@ bool screen_is_ios() {
 }
 
 bool screen_inner_unfolded() {
-    return screen_is_ios() && g_screen.full.x >= g_top_menu_sizes.unfolded_min_width;
+    return screen_is_ios() && std::min(g_screen.full.x, g_screen.full.y) >= g_top_menu_sizes.unfolded_min_short_side;
+}
+
+bool screen_portrait() {
+    return g_screen.full.y > g_screen.full.x;
+}
+
+int screen_portrait_fit_width(xstring id) {
+    auto it = g_portrait_fit_widths.find(id);
+    return it == g_portrait_fit_widths.end() ? 0 : it->second;
 }
 
 int top_menu_height() {

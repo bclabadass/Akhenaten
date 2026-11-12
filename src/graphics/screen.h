@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/vec2i.h"
+#include "core/xstring.h"
 
 struct screen_t {
     int width;
@@ -20,8 +21,12 @@ extern screen_t g_screen;
 inline int screen_width() { return g_screen.width; }
 inline int screen_height() { return g_screen.height; }
 
-// The iPhone Duo's inner screen: an iOS screen at least top_menu_widget.unfolded_min_width wide.
+// The iPhone Duo's inner screen, either way up: an iOS screen whose short side is at least
+// top_menu_widget.unfolded_min_short_side.
 bool screen_inner_unfolded();
+bool screen_portrait();
+// Width of a fixed-size pop-up listed in inner_screen.portrait_fit, else 0.
+int screen_portrait_fit_width(xstring id);
 int top_menu_height();
 void screen_pretend_ios(bool on);
 bool screen_is_ios();

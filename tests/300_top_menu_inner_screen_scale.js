@@ -67,7 +67,7 @@ function run_test() {
 
     __display_options_set_scale(100)
     __test_pump_frames(3)
-    var want = screen.width >= top_menu_widget.unfolded_min_width ? 50 : 30
+    var want = Math.min(screen.width, screen.height) >= top_menu_widget.unfolded_min_short_side ? 50 : 30
     __log_info_native('[test:300] scale 100 canvas ' + screen.width + ' bar=' + __top_menu_height() + ' want ' + want)
     if (__top_menu_height() == want && __test_viewport_y() == want) {
         __log_marker('narrow_follows_width_rule')

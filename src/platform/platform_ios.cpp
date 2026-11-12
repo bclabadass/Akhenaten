@@ -32,6 +32,10 @@ static int SDLCALL save_settings_when_backgrounded(void*, SDL_Event* event) {
 
 void platform_post_hint_init() {
     SDL_AddEventWatch(save_settings_when_backgrounded, nullptr);
+    // Opened upright, the window starts in portrait: right for the inner screen, and on the folded one the
+    // screen tracker (g_ios_screen) turns it to landscape at once. Starting landscape only would turn an
+    // inner-screen launch to portrait in the middle of the intro.
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight Portrait");
 }
 
 void platform_setup_begin() {

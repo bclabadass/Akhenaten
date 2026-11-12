@@ -21,13 +21,22 @@ function top_menu_on_level_post_load(ev) {
 	top_menu_refresh_status_text()
 }
 
-// The iPhone Duo's inner screen has curved corners that clip both ends of the menu bar.
-function top_menu_edge_inset(width, is_ios) {
-	return (is_ios && width >= top_menu_widget.unfolded_min_width) ? top_menu_widget.unfolded_edge_inset : 0
+// The iPhone Duo's inner screen has curved corners that clip both ends of the menu bar, either way up.
+function top_menu_edge_inset(short_side, is_ios) {
+	return (is_ios && short_side >= top_menu_widget.unfolded_min_short_side) ? top_menu_widget.unfolded_edge_inset : 0
+}
+
+function top_menu_screen_short_side() {
+	return Math.min(screen.width, screen.height)
+}
+
+// Portrait is too narrow for every menu on one row; menus marked portrait_hidden are left out.
+function top_menu_header_visible(menu) {
+	return !(menu.portrait_hidden && __screen_inner_unfolded() && __screen_portrait())
 }
 
 function top_menu_headers_x() {
-	return top_menu_widget.offset.x + top_menu_edge_inset(screen.width, __platform_is_ios())
+	return top_menu_widget.offset.x + top_menu_edge_inset(top_menu_screen_short_side(), __platform_is_ios())
 }
 
 function top_menu_measure_headers_right() {
@@ -40,6 +49,9 @@ function top_menu_measure_headers_right() {
 	// The hovered header draws in YELLOW (bold in TTF fonts) — lay out for the wider glyphs.
 	var font = !!game_features.gameui_highlight_top_menu_hover ? FONT_NORMAL_YELLOW : FONT_NORMAL_BLACK_ON_LIGHT
 	for (var i = 0; i < menus.length; i++) {
+		if (!top_menu_header_visible(menus[i])) {
+			continue
+		}
 		var text = top_menu_resolve_text(menus[i].text)
 		cur_x += top_menu_text_width(text, font) + spacing
 	}
@@ -54,20 +66,58 @@ function top_menu_update_status_shift() {
 		gap = 16
 	}
 	var funds = top_menu_widget.status_funds
+	top_menu_state.portrait_status = null
 	if (!funds) {
 		top_menu_state.status_shift = 0
 		return 0
 	}
-	top_menu_state.status_shift = top_menu_status_shift_for(screen.width, __platform_is_ios(), headers_right + gap,
+	if (__screen_inner_unfolded() && __screen_portrait()) {
+		top_menu_state.status_shift = 0
+		top_menu_state.portrait_status = top_menu_portrait_status_layout(screen.width,
+			top_menu_edge_inset(top_menu_screen_short_side(), __platform_is_ios()), headers_right + gap, top_menu_status_widths(),
+			top_menu_widget.portrait_status_gap,
+			top_menu_rotate_buttons_width())
+		return 0
+	}
+	top_menu_state.status_shift = top_menu_status_shift_for(screen.width, top_menu_screen_short_side(), __platform_is_ios(), headers_right + gap,
 		Math.round(funds.right * top_menu_scale()))
 	return top_menu_state.status_shift
 }
 
 // Negative pulls the status fields in from the screen edge; positive pushes them right, clear of the headers.
-function top_menu_status_shift_for(width, is_ios, need, funds_right) {
+function top_menu_status_shift_for(width, short_side, is_ios, need, funds_right) {
 	var funds_x = width + funds_right
-	var inset = top_menu_edge_inset(width, is_ios)
+	var inset = top_menu_edge_inset(short_side, is_ios)
 	return funds_x - inset >= need ? -inset : need - funds_x
+}
+
+function top_menu_funds_text() {
+	return fmt("#top_menu_funds ${treasury}", { treasury: city.finance.treasury })
+}
+
+function top_menu_status_widths() {
+	return {
+		funds: top_menu_text_width(top_menu_funds_text(), FONT_NORMAL_BLACK_ON_LIGHT),
+		pop: top_menu_text_width(top_menu_state.population_str, FONT_NORMAL_BLACK_ON_LIGHT),
+		date: top_menu_text_width(top_menu_state.date_str, FONT_NORMAL_BLACK_ON_LIGHT)
+	}
+}
+
+function top_menu_rotate_buttons_width() {
+	var w = top_menu_widget
+	return Math.round((w.status_rot_r.right + w.status_rot_r.w - w.status_rot_l.right) * top_menu_scale())
+}
+
+// Portrait: the status fields don't fit at their landscape offsets from the right edge, so they are
+// packed by their text widths against the right inset (funds, population, rotate buttons, date),
+// and pushed right past the headers if even that is too wide.
+function top_menu_portrait_status_layout(width, inset, need, widths, gap, rot_w) {
+	var date = width - inset - widths.date
+	var rot = date - gap - rot_w
+	var pop = rot - gap - widths.pop
+	var funds = pop - gap - widths.funds
+	var push = funds < need ? need - funds : 0
+	return { funds: funds + push, pop: pop + push, rot: rot + push, date: date + push, widths: widths }
 }
 
 function top_menu_draw_background() {
@@ -109,7 +159,11 @@ function top_menu_draw_background() {
 	if (!rotate_img) {
 		return
 	}
-	var rotate_pos = { x: screen.width + Math.round(top_menu_widget.rotate_x * scale) + top_menu_state.status_shift, y: 0 }
+	var portrait = top_menu_state.portrait_status
+	var rotate_x = portrait
+		? portrait.rot + Math.round((top_menu_widget.rotate_x - top_menu_widget.status_rot_l.right) * scale)
+		: screen.width + Math.round(top_menu_widget.rotate_x * scale) + top_menu_state.status_shift
+	var rotate_pos = { x: rotate_x, y: 0 }
 	if (scale == 1) {
 		ui.draw_texture(rotate_pos, rotate_img.tid)
 	} else {
@@ -142,6 +196,9 @@ function top_menu_draw_headers() {
 	var padding_x = is_mobile ? 12 : 6
 	for (var i = 0; i < menus.length; i++) {
 		var menu = menus[i]
+		if (!top_menu_header_visible(menu)) {
+			continue
+		}
 		var text = top_menu_resolve_text(menu.text)
 		var width = top_menu_text_width(text, hover_font)
 		var x_start = cur_x
@@ -187,6 +244,23 @@ function top_menu_status_rect(cfg) {
 
 function top_menu_status_rects() {
 	var w = top_menu_widget
+	var p = top_menu_state.portrait_status
+	if (p) {
+		var scale = top_menu_scale()
+		var y = Math.round(w.offset.y * scale)
+		var h = Math.round(w.status_date.h * scale)
+		function rot_rect(cfg) {
+			return { x: p.rot + Math.round((cfg.right - w.status_rot_l.right) * scale), y: y, w: Math.round(cfg.w * scale), h: Math.round(cfg.h * scale) }
+		}
+		return {
+			date: { x: p.date, y: y, w: p.widths.date, h: h },
+			pop: { x: p.pop, y: y, w: p.widths.pop, h: h },
+			funds: { x: p.funds, y: y, w: p.widths.funds, h: h },
+			rot_l: rot_rect(w.status_rot_l),
+			rot_m: rot_rect(w.status_rot_m),
+			rot_r: rot_rect(w.status_rot_r)
+		}
+	}
 	return {
 		date: top_menu_status_rect(w.status_date),
 		pop: top_menu_status_rect(w.status_pop),
@@ -204,7 +278,7 @@ function top_menu_point_in(mx, my, r) {
 function top_menu_draw_status() {
 	var treasury = city.finance.treasury
 	var funds_font = treasury >= 0 ? FONT_NORMAL_BLACK_ON_LIGHT : FONT_NORMAL_YELLOW
-	var funds_text = fmt("#top_menu_funds ${treasury}", { treasury: treasury })
+	var funds_text = top_menu_funds_text()
 	var r = top_menu_status_rects()
 	var mx = __mouse.x
 	var my = __mouse.y
