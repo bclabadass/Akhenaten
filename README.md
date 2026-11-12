@@ -1,3 +1,81 @@
+# iKhenaten
+
+**Pharaoh + Cleopatra on iPhone.** iKhenaten is a fork of [Akhenaten](https://github.com/dalerank/Akhenaten),
+the open-source reimplementation of Impressions Games' _Pharaoh_ (1999), that runs natively on iOS.
+It is developed and played on a foldable iPhone, on both its folded and unfolded screens.
+
+The iOS work is on the [`ios-port`](https://github.com/bclabadass/iKhenaten/tree/ios-port) branch.
+Below the line is upstream Akhenaten's own README.
+
+**Status: playable.** The campaign missions through Nekhen (Nubt, Thinis, Perwadjyt and Nekhen) are
+confirmed working as intended on the phone, with no major issues. Builds are sideloaded from Xcode;
+there is no App Store release.
+
+## What iKhenaten adds
+
+### iOS support
+- Native iOS build for devices and the Simulator, from CMake with Xcode (iOS 17 or later).
+- Builds with the iOS 27 SDK, which requires UIScene: SDL3's UIScene support is backported to SDL2
+  as a patch applied at configure time. The game resizes when the phone is folded or unfolded.
+- Game data and saves live in the app's `Documents/PharaohData` folder, reachable from Finder on a
+  Mac or the Files app on the phone.
+- Settings are saved when the app goes to the background, since iOS closes apps without a Quit.
+- Fixes a crash at startup: the script engine's parser recursed deeply enough to overflow the
+  1 MB main-thread stack iOS gives apps (macOS gives 8 MB).
+
+### Touch controls
+- Two-finger tap is a right-click everywhere (close windows, go back, cancel building).
+- Pinch to zoom, and one-finger drags that follow the finger at any zoom.
+- An on-screen rotate button while placing buildings that can rotate.
+- Tap the date in the top menu to pause or resume.
+- The on-screen keyboard opens for text fields and closes after a fold or rotation.
+
+### The unfolded (inner) screen
+- A taller top menu bar with larger text and dropdowns, inset from the screen's curved corners.
+- Pop-up windows and the title screen drawn 1.5x larger, while the city keeps its full detail.
+- Windows lay themselves out again after a fold or rotation.
+
+### Fixes found while playing
+Most of these affect every platform, and each comes with an integral test in [`tests/`](tests/):
+- Bazaars can stop buying pottery and beer the city makes itself (this blocked winning Nekhen).
+- Yearly births were about five times too high.
+- A storage yard without road access stopped the city's storage totals, so stockpile goals never
+  completed.
+- Burning ruins could leave black tiles where a merged house burned, and loaded fires had no flames.
+- Statues showed the wrong statue in their fourth rotation.
+- Granary roofs showed the wrong food, and overseer screens lost their layout after a resize.
+- A failing script could break the top menu, sidebar and game timer.
+
+## Building for iPhone
+
+You need a Mac with Xcode and the iOS SDK, CMake, an Apple ID signed into Xcode, and the game data
+from _Pharaoh_ with the _Cleopatra_ expansion, patched to version 1.3. A free Apple ID works, but
+its builds stop launching after 7 days and have to be built and installed again.
+
+```
+cmake -B build-ios-device -G Xcode -DCMAKE_TOOLCHAIN_FILE=cmake/ios-device.toolchain.cmake \
+  -DOPTION_ENABLE_TRACY=OFF -DOPTION_ENABLE_VIDEO_RECORDING=OFF -DOPTION_ENABLE_INNOEXTRACT=OFF \
+  -DGAME_IOS_BUNDLE_ID=<your bundle id> -DGAME_IOS_DEVELOPMENT_TEAM=<your team id>
+xcodebuild -project build-ios-device/akhenaten.xcodeproj -scheme akhenaten -configuration RelWithDebInfo \
+  -destination id=<device id> -allowProvisioningUpdates -allowProvisioningDeviceRegistration build
+xcrun devicectl device install app --device <device id> build-ios-device/RelWithDebInfo-iphoneos/akhenaten.app
+```
+
+Then copy your Pharaoh folder (the one containing `campaign.txt`) into the app's
+`Documents/PharaohData`, using Finder or the Files app. Leave out `akhenaten.conf` from a desktop
+install: it would replace the iOS defaults, such as pinch zoom being on.
+
+For the Simulator, use `cmake/ios-sim.toolchain.cmake` and build with `-sdk iphonesimulator`.
+[`IOS_PORT.md`](IOS_PORT.md) has the full working notes: build checks, what changed and why, and
+the open to-do list.
+
+## Known issues
+- Saves from the original _Pharaoh_ can load corrupted (an upstream issue).
+- The unfolded screen is laid out for landscape only.
+- Mission narration and the historical-period videos aren't played yet.
+
+---
+
 # Akhenaten [![Github Actions](x64/workflows/Akhenaten%20Build%20Windows/badge.svg)](https://github.com/dalerank/Akhenaten/actions)
 
 [![Website](res/badges/website.svg)](https://dalerank.github.io/Akhenaten/)
