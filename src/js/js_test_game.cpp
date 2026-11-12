@@ -4179,6 +4179,12 @@ static int __test_yards_stored(int resource) {
 }
 ANK_FUNCTION_1(__test_yards_stored);
 
+void city_resource_calculate_storageyard_stocks();
+static void __test_calculate_storageyard_stocks() {
+    city_resource_calculate_storageyard_stocks();
+}
+ANK_FUNCTION(__test_calculate_storageyard_stocks);
+
 static int __test_yards_stored_staffed(int resource) {
     if (resource <= RESOURCE_NONE || resource >= RESOURCES_MAX) {
         return 0;

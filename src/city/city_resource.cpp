@@ -273,7 +273,7 @@ void city_resource_calculate_storageyard_stocks() {
 
         auto warehouse = room->yard();
         if (!warehouse || !warehouse->has_road_access()) {
-            return;
+            continue;
         }
 
         room->base.has_road_access = warehouse->has_road_access();
