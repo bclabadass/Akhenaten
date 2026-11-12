@@ -9,6 +9,8 @@
 #include "content/vfs.h"
 #include "sound/channel.h"
 
+#include <SDL_mixer.h>
+
 #include <cctype>
 #include <cstring>
 
@@ -120,7 +122,13 @@ bool sound_manager_t::speech_play_file(xstring filename, int volume) {
     }
 
     stop_channel(SOUND_CHANNEL_SPEECH);
-    return play_file_on_channel(fs_path, SOUND_CHANNEL_SPEECH, game_features::gameopt_sound_speech_volume.to_int());
+    const bool played
+      = play_file_on_channel(fs_path, SOUND_CHANNEL_SPEECH, game_features::gameopt_sound_speech_volume.to_int());
+    if (!played) {
+        logs::warn("Sound: speech '%s' found at '%s' but didn't play (audio %s): %s", filename.c_str(), fs_path.c_str(),
+          initialized ? "open" : "not open", Mix_GetError());
+    }
+    return played;
 }
 
 void sound_manager_t::speech_stop() {

@@ -71,8 +71,53 @@ mission_briefing_window {
     }
 }
 
+// Pharaoh's five historical periods each open with a video before the briefing of their first
+// mission (Pharaoh.exe names them; the Cleopatra periods have none). campaign.txt lists the periods
+// in this order; a tap skips the video.
+var mission_period_videos = [
+    "BINKS/High/pre_dynastic_big.bik",
+    "BINKS/High/archaic_big.bik",
+    "BINKS/High/old_kingdom_big.bik",
+    "BINKS/High/middle_kingdom_big.bik",
+    "BINKS/High/new_king_big.bik",
+]
+var mission_period_video_scenario = -1
+
+function mission_period_video(scenario_id) {
+    if (scenario.scmode != e_scenario_normal || !__game_has_campaign_data()) {
+        return ""
+    }
+    for (var period = 0; period < mission_period_videos.length; period++) {
+        if (mission_period_first_scenario(period) == scenario_id) {
+            return mission_period_videos[period]
+        }
+    }
+    return ""
+}
+
+// Old, Middle and New Kingdom open with a choice step (-1) before their first mission.
+function mission_period_first_scenario(period) {
+    for (var step = 0; __game_campaign_has_mission_step(period, step); step++) {
+        var id = __game_campaign_mission_step_scenario_id(period, step)
+        if (id >= 0) {
+            return id
+        }
+    }
+    return -1
+}
+
+function mission_briefing_after_period_video() {
+    mission_briefing_show(mission_period_video_scenario, false)
+}
+
 [event=event_mission_briefing_show_after_load]
 function mission_briefing_on_show_after_load(ev) {
+    var video = mission_period_video(ev.scenario_id)
+    if (video) {
+        mission_period_video_scenario = ev.scenario_id
+        __game_victory_video_show(video, 560, 333, "mission_briefing_after_period_video")
+        return
+    }
     mission_briefing_show(ev.scenario_id, false)
 }
 

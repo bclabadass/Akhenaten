@@ -67,15 +67,22 @@ void content_cache_real_file_paths(pcstr f) {
     }
 }
 
+// Folders whose files are found whatever the case of the name asked for: on a case-sensitive file
+// system (iOS, Linux) a request for 203_mission.mp3 must still open 203_mission.MP3.
 void content_cache_paths() {
     pcstr folders[] = {
-        "",
-        "AUDIO",
-        "AUDIO/Ambient",
-        "AUDIO/Music",
-        "AUDIO/Voice",
-        "AUDIO/Wavs",
-        "Data",
+      "",
+      "AUDIO",
+      "AUDIO/Ambient",
+      "AUDIO/Music",
+      "AUDIO/Voice",
+      "AUDIO/Voice/Mission",
+      "AUDIO/Voice/Walker",
+      "AUDIO/Wavs",
+      "BINKS",
+      "BINKS/High",
+      "BINKS/Low",
+      "Data",
     };
 
     for (const auto &folder : folders) {

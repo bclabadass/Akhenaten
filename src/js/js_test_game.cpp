@@ -375,6 +375,13 @@ static int __test_image_from_desc(int pack, int id, int offset) {
 }
 ANK_FUNCTION_3(__test_image_from_desc);
 
+// The path a data file opens from, or "" when there is no such file.
+static xstring __test_resolve_path(pcstr rel) {
+    const vfs::path resolved = vfs::path(rel).resolve();
+    return vfs::file_exists(resolved) ? xstring(resolved.c_str()) : xstring();
+}
+ANK_FUNCTION_1(__test_resolve_path);
+
 static void __test_window_configs_reload() {
     autoconfig_window::refresh_all();
 }
