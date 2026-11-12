@@ -4,6 +4,7 @@
 // disable later without touching the main game bindings.
 
 #include "figure/formation_batalion.h"
+#include "building/building_statue.h"
 #include "graphics/window.h"
 #include "platform/renderer.h"
 #include "building/building_fort.h"
@@ -363,6 +364,16 @@ static vec2i __test_window_element_size(xstring section, xstring id) {
     return (w && w->contains(id)) ? (*w)[id].size : vec2i{-1, -1};
 }
 ANK_FUNCTION_2(__test_window_element_size);
+
+static int __test_statue_image(int type, int orientation, int variant) {
+    return building_statue::get_image((e_building_type)type, orientation, variant);
+}
+ANK_FUNCTION_3(__test_statue_image);
+
+static int __test_image_from_desc(int pack, int id, int offset) {
+    return image_desc{(int16_t)pack, (int16_t)id, (int16_t)offset}.tid();
+}
+ANK_FUNCTION_3(__test_image_from_desc);
 
 static void __test_window_configs_reload() {
     autoconfig_window::refresh_all();

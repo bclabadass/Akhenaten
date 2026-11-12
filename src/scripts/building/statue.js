@@ -1,6 +1,6 @@
 log_info("akhenaten: building statue common started")
 
-function statue_get_image(variants, orientation, variant) {
+function statue_get_image(variants, orientation, variant, phases) {
     var size = variants.length
     if (!size) {
         return 0
@@ -14,8 +14,14 @@ function statue_get_image(variants, orientation, variant) {
     variant = variant % size
 
     var desc = variants[variant]
-    var img = get_image({ pack: desc.pack, id: desc.id, offset: desc.offset + orientation })
+    var img = get_image({ pack: desc.pack, id: desc.id, offset: statue_image_offset(desc, orientation, phases, variant) })
     return img ? img.tid : 0
+}
+
+// A variant's offset is its statue's first image of four; the facing wraps within those four.
+function statue_image_offset(desc, orientation, phases, variant) {
+    var phase = (phases && variant < phases.length) ? phases[variant] : 0
+    return desc.offset + (orientation + phase) % 4
 }
 
 function statue_is_type(type) {

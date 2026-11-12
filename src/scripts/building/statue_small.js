@@ -6,8 +6,10 @@ building_small_statue = {
       {pack: PACK_GENERAL, id: 61, offset:4}
       {pack: PACK_EXPANSION, id: 37, offset:0}
       {pack: PACK_EXPANSION, id: 37, offset:4}
-      {pack: PACK_TEMPLE_RA, id: 1, offset:27}
+      {pack: PACK_TEMPLE_RA, id: 1, offset:26}
     ]
+    // The Ra statue's default facing is the second of its four images; the others start on the first.
+    phases : [0, 0, 0, 0, 1]
     meta : {
       text_id:80
       help_link:"message_building_garden_plaze_statue"
@@ -26,7 +28,7 @@ building_small_statue = {
 
 [es=(building_small_statue, setup_preview_graphics)]
 function building_small_statue_setup_preview_graphics(ev) {
-    var img = statue_get_image(building_small_statue.variants, city_planner.relative_orientation, city_planner.building_variant)
+    var img = statue_get_image(building_small_statue.variants, city_planner.relative_orientation, city_planner.building_variant, building_small_statue.phases)
     __city_planner_set_tiles_building(img, building_small_statue.building_size)
 }
 

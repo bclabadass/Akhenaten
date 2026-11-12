@@ -67,8 +67,9 @@ int building_statue::get_image(e_building_type type, int orientation, int varian
     while (variant > (size - 1)) { variant -= size; }
 
     variant %= size;
+    const int phase = variant < (int)statue_params.phases.size() ? statue_params.phases[variant] : 0;
     image_desc imdesc = statue_params.variants[variant];
-    return (imdesc + orientation).tid();
+    return (imdesc + (orientation + phase) % 4).tid();
 }
 
 // Guild workers tending statues is a remake addition; OG statues need no service.

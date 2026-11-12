@@ -2,11 +2,13 @@ log_info("akhenaten: building_large_statue started")
 
 building_large_statue = {
     variants : [
-      {pack: PACK_GENERAL, id: 7, offset:1},
-      {pack: PACK_GENERAL, id: 7, offset:5},
-      {pack: PACK_EXPANSION, id: 35, offset:1},
-      {pack: PACK_EXPANSION, id: 35, offset:5},
+      {pack: PACK_GENERAL, id: 7, offset:0},
+      {pack: PACK_GENERAL, id: 7, offset:4},
+      {pack: PACK_EXPANSION, id: 35, offset:0},
+      {pack: PACK_EXPANSION, id: 35, offset:4},
     ]
+    // Each statue's default facing is the second of its four images.
+    phases : [1, 1, 1, 1]
     meta : {
       text_id:80
       help_link:"message_building_garden_plaze_statue"
@@ -25,7 +27,7 @@ building_large_statue = {
 
 [es=(building_large_statue, setup_preview_graphics)]
 function building_large_statue_setup_preview_graphics(ev) {
-    var img = statue_get_image(building_large_statue.variants, city_planner.relative_orientation, city_planner.building_variant)
+    var img = statue_get_image(building_large_statue.variants, city_planner.relative_orientation, city_planner.building_variant, building_large_statue.phases)
     __city_planner_set_tiles_building(img, building_large_statue.building_size)
 }
 

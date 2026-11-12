@@ -10,7 +10,10 @@ public:
     virtual building_statue *dcast_statue() override { return this; }
 
     struct statue_params_t {
+        // Each variant is its statue's first image of four, one per facing.
         svector<image_desc, 8> variants;
+        // Which of the four the default facing shows, per variant (0 if missing).
+        svector<int8_t, 8> phases;
     };
 
     struct runtime_data_t {
@@ -38,7 +41,7 @@ public:
     static bool guild_service_enabled();
 };
 ANK_CONFIG_PROPERTY(building_statue::runtime_data_t, variant)
-ANK_CONFIG_STRUCT(building_statue::statue_params_t, variants)
+ANK_CONFIG_STRUCT(building_statue::statue_params_t, variants, phases)
 
 class building_small_statue : public building_statue {
 public:
@@ -49,7 +52,7 @@ public:
 
     virtual const statue_params_t &statue_params() { return current_params(); }
 };
-ANK_CONFIG_STRUCT(building_small_statue::static_params, variants)
+ANK_CONFIG_STRUCT(building_small_statue::static_params, variants, phases)
 
 class building_medium_statue : public building_statue {
 public:
@@ -60,7 +63,7 @@ public:
 
     virtual const statue_params_t &statue_params() { return current_params(); }
 };
-ANK_CONFIG_STRUCT(building_medium_statue::static_params, variants)
+ANK_CONFIG_STRUCT(building_medium_statue::static_params, variants, phases)
 
 class building_large_statue : public building_statue {
 public:
@@ -71,4 +74,4 @@ public:
 
     virtual const statue_params_t &statue_params() { return current_params(); }
 };
-ANK_CONFIG_STRUCT(building_large_statue::static_params, variants)
+ANK_CONFIG_STRUCT(building_large_statue::static_params, variants, phases)
