@@ -67,6 +67,9 @@ sidebar_window_expanded {
 
     extra_block_x      : -24
     expanded_offset_x  : 186
+    // Inner screen: the Overlays link's text is the top menu bar's size, at this offset in the sidebar.
+    overlays_text_x    : 20
+    overlays_text_dy   : -3
 
     slider {
         deceleration_offset_x : 125
@@ -223,7 +226,7 @@ function window_build_menu_on_draw(window) {
 
     window.undo_btn.readonly = !__ui_game_can_undo()
     window.goto_problem.readonly = !__city_message_problem_area_count()
-    window.show_overlays.text = ui.sidebar_overlay_link_text()
+    sidebar_window_overlays_label(window)
 
     var flat_enabled = !!game_features.gameui_flat_buildings
     var overlay_on = (city.current_overlay != OVERLAY_NONE)
@@ -245,6 +248,34 @@ function window_build_menu_on_draw(window) {
             ? "#sidebar_flat_buildings_on"
             : "#sidebar_flat_buildings"
     }
+}
+
+function sidebar_window_overlays_label(window) {
+    var link = window.show_overlays
+    if (top_menu_text_scale() == 1) {
+        link.text = ui.sidebar_overlay_link_text()
+        return
+    }
+
+    // Inner screen: drawn over the sidebar in ui_draw_after; the link keeps the tap area.
+    link.text = ""
+    var width = Math.ceil(__ui_text_width(ui.sidebar_overlay_link_text(), FONT_NORMAL_BLACK_ON_LIGHT) * top_menu_text_scale())
+    link.size = { x: Math.max(link.size.x, sidebar_window_expanded.overlays_text_x - link.pos.x + width), y: link.size.y }
+}
+
+[es=(sidebar_window_expanded, ui_draw_after)]
+function sidebar_window_expanded_draw_overlays_label(window) {
+    var scale = top_menu_text_scale()
+    if (scale == 1) {
+        return
+    }
+
+    var link = window.show_overlays
+    var left = __ui_widget_sidebar_city_offset_x() + link.pos.x
+    var top = __top_menu_height() - top_menu_widget.height + link.pos.y
+    var hovered = __mouse.x >= left && __mouse.x < left + link.size.x && __mouse.y >= top && __mouse.y < top + link.size.y
+    var font = hovered ? FONT_NORMAL_YELLOW : FONT_NORMAL_BLACK_ON_LIGHT
+    __ui_label_scaled(ui.sidebar_overlay_link_text(), { x: left - link.pos.x + sidebar_window_expanded.overlays_text_x, y: top + sidebar_window_expanded.overlays_text_dy }, font, scale)
 }
 
 [es=(sidebar_window_expanded, show_overlays)]

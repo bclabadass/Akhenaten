@@ -133,6 +133,11 @@ void ui::sidebar_window_expanded_t::ui_draw_foreground(UiFlags flags) {
 
     ui.end_widget();
 
+    // Scripts drawing over the sidebar's elements, in screen coordinates.
+    ui.begin_widget({0, 0}, false);
+    ui.event(sidebar_window_draw{pos, opened_menu}, get_section(), "ui_draw_after");
+    ui.end_widget();
+
     ui_draw_relief(flags);
 }
 

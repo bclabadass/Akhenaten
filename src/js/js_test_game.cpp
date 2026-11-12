@@ -352,6 +352,18 @@ static vec2i __test_window_element_pos(xstring section, xstring id) {
 }
 ANK_FUNCTION_2(__test_window_element_pos);
 
+static xstring __test_window_element_text(xstring section, xstring id) {
+    autoconfig_window* w = autoconfig_window::find(section);
+    return (w && w->contains(id)) ? (*w)[id].text() : xstring();
+}
+ANK_FUNCTION_2(__test_window_element_text);
+
+static vec2i __test_window_element_size(xstring section, xstring id) {
+    autoconfig_window* w = autoconfig_window::find(section);
+    return (w && w->contains(id)) ? (*w)[id].size : vec2i{-1, -1};
+}
+ANK_FUNCTION_2(__test_window_element_size);
+
 static void __test_window_configs_reload() {
     autoconfig_window::refresh_all();
 }
