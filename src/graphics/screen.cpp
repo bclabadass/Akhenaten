@@ -15,6 +15,7 @@ void screen_t::set_resolution(int w, int h) {
     layout_stale = layout_stale || (width > 0 && (width != w || height != h));
     width = w;
     height = h;
+    full = {w, h};
     dialog_offset.x = (width - 640) / 2;
     dialog_offset.y = (height - 480) / 2;
 
@@ -32,6 +33,7 @@ namespace {
         int unfolded_min_width = 1000;
     };
     top_menu_sizes_t g_top_menu_sizes;
+    float g_popup_scale = 1.0f;
     bool g_pretend_ios = false;
 } // namespace
 
@@ -41,6 +43,7 @@ void ANK_REGISTER_CONFIG_ITERATOR(config_load_top_menu_sizes) {
         g_top_menu_sizes.unfolded_height = arch.r_int("unfolded_height", g_top_menu_sizes.height);
         g_top_menu_sizes.unfolded_min_width = arch.r_int("unfolded_min_width", 1000);
     });
+    g_config_arch.r_section("inner_screen", [](archive arch) { g_popup_scale = arch.r_float("popup_scale", 1.0f); });
 }
 
 void screen_pretend_ios(bool on) {
@@ -53,9 +56,20 @@ bool screen_is_ios() {
 }
 
 bool screen_inner_unfolded() {
-    return screen_is_ios() && g_screen.width >= g_top_menu_sizes.unfolded_min_width;
+    return screen_is_ios() && g_screen.full.x >= g_top_menu_sizes.unfolded_min_width;
 }
 
 int top_menu_height() {
     return screen_inner_unfolded() ? g_top_menu_sizes.unfolded_height : g_top_menu_sizes.height;
+}
+
+float screen_popup_scale() {
+    return screen_inner_unfolded() ? g_popup_scale : 1.0f;
+}
+
+void screen_set_virtual_scale(float s) {
+    g_screen.width = (int)(g_screen.full.x / s);
+    g_screen.height = (int)(g_screen.full.y / s);
+    g_screen.dialog_offset.x = (g_screen.width - 640) / 2;
+    g_screen.dialog_offset.y = (g_screen.height - 480) / 2;
 }

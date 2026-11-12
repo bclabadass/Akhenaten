@@ -4,6 +4,8 @@
 // disable later without touching the main game bindings.
 
 #include "figure/formation_batalion.h"
+#include "graphics/window.h"
+#include "platform/renderer.h"
 #include "building/building_fort.h"
 #include "building/building_barracks.h"
 #include "building/building_gatehouse.h"
@@ -3665,6 +3667,26 @@ static vec2i __test_info_ui_screen_pos(pcstr element_id) {
     return (*context.ui)[element_id].screen_pos();
 }
 ANK_FUNCTION_1(__test_info_ui_screen_pos);
+
+static vec2i __test_info_offset() {
+    return common_info_window::get_object_info().offset;
+}
+ANK_FUNCTION(__test_info_offset);
+
+static vec2i __test_info_bgsize() {
+    return common_info_window::get_object_info().bgsize;
+}
+ANK_FUNCTION(__test_info_bgsize);
+
+static float __test_window_ui_scale_for(xstring id) {
+    return window_ui_scale_for(id);
+}
+ANK_FUNCTION_1(__test_window_ui_scale_for);
+
+static float __test_render_ui_scale() {
+    return g_render.ui_scale();
+}
+ANK_FUNCTION(__test_render_ui_scale);
 
 // Values a window element's textfn leaves on the MuJS stack over `calls` calls. Measured here because
 // a script caller would discard them when this native call returns.

@@ -860,6 +860,10 @@ int ui::label_scaled(pcstr tx, vec2i pos, e_font font, float scale) {
     return (int)(text_get_width(tx, font) * scale);
 }
 
+void ui::push_ui_scale(float scale) {
+    push(cmd_t::ui_scale, Scale{scale});
+}
+
 const image_t* ui::eimage(int imgid, vec2i pos) {
     const vec2i offset = g_state.offset();
     push(cmd_t::image, Pos{pos + offset}, ImageId{imgid});

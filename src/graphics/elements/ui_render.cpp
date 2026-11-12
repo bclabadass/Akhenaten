@@ -4,6 +4,7 @@
 #include "game/game.h"
 #include "graphics/elements/lang_text.h"
 #include "graphics/font.h"
+#include "platform/renderer.h"
 
 namespace ui {
 
@@ -79,6 +80,10 @@ void execute_ui_command(painter& ctx, const ui::cmd_t& cmd) {
 
     case cmd_t::text_scaled:
         text_draw(ctx, (const uint8_t*)cmd.str.c_str(), cmd.pos.x, cmd.pos.y, cmd.font, cmd.clr, cmd.scale);
+        break;
+
+    case cmd_t::ui_scale:
+        g_render.set_ui_scale(cmd.scale);
         break;
 
     case cmd_t::text_rich: {
@@ -172,20 +177,37 @@ void execute_ui_command(painter& ctx, const ui::cmd_t& cmd) {
     }
 }
 
+namespace {
+    float g_queue_tail_scale = 1.0f;
+    bool g_flushing = false;
+} // namespace
+
 void push_cmd(cmd_t&& cmd) {
+    if (cmd.type == cmd_t::ui_scale) {
+        g_queue_tail_scale = cmd.scale;
+    } else if (g_flushing && g_render.ui_scale() != g_queue_tail_scale) {
+        // Commands queued during the flush (a text's scrollbar) run after the rest of the queue;
+        // keep the window scale they were queued under.
+        push_ui_scale(g_render.ui_scale());
+    }
     g_ui_commands.push_back(std::move(cmd));
 }
 
 void flush_commands() {
     painter ctx = game.painter();
+    g_flushing = true;
     for (size_t i = 0; i < g_ui_commands.size(); ++i) {
         execute_ui_command(ctx, g_ui_commands[i]);
     }
+    g_flushing = false;
+    g_render.set_ui_scale(1.0f);
+    g_queue_tail_scale = 1.0f;
     g_ui_commands.clear();
 }
 
 void reset_ui_command_queue() {
     g_ui_commands.clear();
+    g_queue_tail_scale = 1.0f;
 }
 
 } // namespace ui

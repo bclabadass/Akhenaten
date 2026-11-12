@@ -127,10 +127,21 @@ struct renderer_data_t {
     bool is_opengl_context;
 
     float global_render_scale = 1.0f;
+    float ui_scale = 1.0f;
 };
 
 graphics_renderer_interface g_render;
 renderer_data_t g_renderer_data;
+
+// SDL resets the scale when the render target changes; put the window scale back on the game canvas
+// before the caller restores its viewport and clip, which were read at that scale.
+static void restore_render_target(SDL_Texture* target) {
+    auto& data = g_renderer_data;
+    SDL_SetRenderTarget(data.renderer, target);
+    if (target && target == data.render_texture && data.ui_scale != 1.0f) {
+        SDL_RenderSetScale(data.renderer, data.ui_scale, data.ui_scale);
+    }
+}
 
 bool graphics_renderer_interface::save_screen_buffer(painter &ctx, color* pixels, int x, int y, int width, int height, int row_width) {
     SDL_Rect rect = {x, y, width, height};
@@ -489,7 +500,7 @@ int graphics_renderer_interface::save_texture_from_screen(int texture_id, vec2i 
     SDL_SetRenderTarget(data.renderer, texture_info.texture);
     SDL_RenderSetViewport(data.renderer, &dst_rect);
     SDL_RenderCopy(data.renderer, former_target, &src_rect, &dst_rect);
-    SDL_SetRenderTarget(data.renderer, former_target);
+    restore_render_target(former_target);
     SDL_SetTextureBlendMode(former_target, former_blend);
     SDL_RenderSetViewport(data.renderer, &former_viewport);
     SDL_RenderSetClipRect(data.renderer, had_clip ? &former_clip : nullptr);
@@ -567,7 +578,7 @@ void graphics_renderer_interface::end_saved_texture_target() {
         return;
     }
 
-    SDL_SetRenderTarget(data.renderer, data.saved_texture_target.former_target);
+    restore_render_target(data.saved_texture_target.former_target);
     SDL_RenderSetViewport(data.renderer, &data.saved_texture_target.former_viewport);
     SDL_RenderSetClipRect(data.renderer, data.saved_texture_target.had_clip ? &data.saved_texture_target.former_clip : nullptr);
     data.saved_texture_target = {};
@@ -626,7 +637,7 @@ void graphics_renderer_interface::clear_saved_texture(int texture_id, color clr)
                            (clr & COLOR_CHANNEL_ALPHA) >> COLOR_BITSHIFT_ALPHA);
     SDL_RenderClear(data.renderer);
 
-    SDL_SetRenderTarget(data.renderer, former_target);
+    restore_render_target(former_target);
     SDL_RenderSetViewport(data.renderer, &former_viewport);
     SDL_RenderSetClipRect(data.renderer, had_clip ? &former_clip : nullptr);
 }
@@ -663,7 +674,7 @@ static void create_blend_texture(int type) {
     SDL_Rect src_coords = {img->atlas.offset.x, img->atlas.offset.y, img->width, img->height};
     SDL_RenderCopy(data.renderer, flat_tile, &src_coords, 0);
 
-    SDL_SetRenderTarget(data.renderer, former_target);
+    restore_render_target(former_target);
     SDL_RenderSetViewport(data.renderer, &former_viewport);
     SDL_RenderSetClipRect(data.renderer, &former_clip);
 
@@ -922,6 +933,18 @@ bool graphics_renderer_interface::is_fullscreen_only() {
 
 float graphics_renderer_interface::scale() {
     return g_renderer_data.global_render_scale;
+}
+
+void graphics_renderer_interface::set_ui_scale(float scale) {
+    auto& data = g_renderer_data;
+    data.ui_scale = scale;
+    if (data.renderer && data.render_texture && SDL_GetRenderTarget(data.renderer) == data.render_texture) {
+        SDL_RenderSetScale(data.renderer, scale, scale);
+    }
+}
+
+float graphics_renderer_interface::ui_scale() const {
+    return g_renderer_data.ui_scale;
 }
 
 SDL_Renderer *graphics_renderer_interface::renderer() {

@@ -169,7 +169,11 @@ void window_info_update(bool avoid_mouse) {
     }
 
     // dialog placement
+    // Placed beside the tap, in the coordinates the info window is drawn in.
+    const float scale_before = window_ui_scale_current();
+    window_ui_scale_apply(window_ui_scale_for("window_building_info"), false);
     context.offset = window_building_set_possible_position(mouse::get().pos(), context.bgsize);
+    window_ui_scale_apply(scale_before, false);
 }
 
 void window_info_init(tile2i tile, bool avoid_mouse) {
@@ -186,10 +190,13 @@ static void window_info_draw_background(int) {
     auto &context = def_object_info;
 
     game.animation = false;
-    window_city_draw_panels();
-    js_call_event_handlers("top_menu_draw", {});
-    window_city_draw();
-    widget_sidebar_city_draw_foreground();
+    {
+        window_ui_canvas_scope canvas;
+        window_city_draw_panels();
+        js_call_event_handlers("top_menu_draw", {});
+        window_city_draw();
+        widget_sidebar_city_draw_foreground();
+    }
     context.ui->window_info_background(context);
 }
 

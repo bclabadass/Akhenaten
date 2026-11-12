@@ -6,6 +6,7 @@
 #include "window/message_dialog.h"
 #include "core/profiler.h"
 #include "graphics/elements/ui_js.h"
+#include "graphics/screen.h"
 #include "graphics/window.h"
 #include "js/js_events.h"
 #include "input/input.h"
@@ -206,7 +207,11 @@ void autoconfig_window::refresh_layout_for_screen() {
     int refreshed = 0;
     for (const xstring& name : order) {
         const std::string source = std::string(temp_name) + " " + blocks[name];
-        if (!js_vm_exec_source("layout_refresh", source.c_str())) {
+        // Scaled windows lay out on the smaller virtual screen they are drawn on.
+        screen_set_virtual_scale(window_ui_scale_for(name));
+        const bool evaluated = js_vm_exec_source("layout_refresh", source.c_str());
+        screen_set_virtual_scale(1.0f);
+        if (!evaluated) {
             logs::error("layout refresh: could not evaluate %s", name.c_str());
             continue;
         }
@@ -377,7 +382,10 @@ void autoconfig_window::show(xstring section) {
        [section] (int flags) { auto *w = get_window_current(section); if (w) w->ui_draw_foreground(flags); },
        [section] (const mouse *m, const hotkeys *h) { auto *w = get_window_current(section); if (w) w->ui_handle_mouse(m); }
     };
-    w->init();
+    {
+        window_ui_scale_scope scaled(window_ui_scale_for(section));
+        w->init();
+    }
     window_show(&s_script_window_type);
 }
 

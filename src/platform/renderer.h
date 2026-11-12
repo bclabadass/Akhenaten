@@ -111,6 +111,10 @@ struct graphics_renderer_interface {
     bool save_texture_to_file(pcstr filename, SDL_Texture* tex, e_file_format file_format = FILE_FORMAT_BMP);
     float scale();
 
+    // Scale for the window being drawn (pop-ups on the iPhone Duo's inner screen); 1 otherwise.
+    void set_ui_scale(float scale);
+    float ui_scale() const;
+
     /**
      * Returns whether the window must always be fullscreen
      * @return true when only fullscreen can be used, false otherwise

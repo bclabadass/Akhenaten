@@ -311,6 +311,19 @@ void painter::draw_impl(SDL_Texture *texture, vec2i pos, vec2i offset, vec2i siz
                          size.y * y_scale_factor};
     }
 
+    const float ui_scale = g_render.ui_scale();
+    if (ui_scale != 1.0f) {
+        // A scaled window's tiles can start on half pixels; snap their edges to whole canvas pixels so
+        // neighbouring tiles meet exactly and nearest sampling never reaches the next atlas image.
+        auto snap = [ui_scale](float v) { return std::floor(v * ui_scale + 0.5f) / ui_scale; };
+        const float left = snap(screen_coords.x);
+        const float top = snap(screen_coords.y);
+        screen_coords.w = snap(screen_coords.x + screen_coords.w) - left;
+        screen_coords.h = snap(screen_coords.y + screen_coords.h) - top;
+        screen_coords.x = left;
+        screen_coords.y = top;
+    }
+
     {
         SDL_Rect clip{};
         SDL_RenderGetClipRect(this->renderer, &clip);

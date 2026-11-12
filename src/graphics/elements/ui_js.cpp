@@ -13,6 +13,8 @@
 #include "overlays/city_overlay.h"
 #include "graphics/elements/generic_button.h"
 #include "graphics/window.h"
+
+#include <vector>
 #include "window/window_city.h"
 #include "window/editor/window_editor.h"
 #include "window/editor/empire.h"
@@ -129,21 +131,25 @@ void __ui_set_tooltip(pcstr text) {
 ANK_FUNCTION_1(__ui_set_tooltip);
 
 void __ui_window_city_draw_panels() {
+    window_ui_canvas_scope canvas;
     window_city_draw_panels();
 }
 ANK_FUNCTION(__ui_window_city_draw_panels)
 
 void __ui_widget_sidebar_city_draw_foreground() {
+    window_ui_canvas_scope canvas;
     widget_sidebar_city_draw_foreground();
 }
 ANK_FUNCTION(__ui_widget_sidebar_city_draw_foreground)
 
 bool __ui_widget_sidebar_city_handle_mouse_build_menu() {
+    window_ui_canvas_scope canvas;
     return widget_sidebar_city_handle_mouse_build_menu(&mouse::ref());
 }
 ANK_FUNCTION(__ui_widget_sidebar_city_handle_mouse_build_menu)
 
 bool __ui_widget_sidebar_city_handle_mouse() {
+    window_ui_canvas_scope canvas;
     return widget_sidebar_city_handle_mouse(&mouse::ref()) != 0;
 }
 ANK_FUNCTION(__ui_widget_sidebar_city_handle_mouse)
@@ -154,6 +160,7 @@ bool __ui_widget_sidebar_editor_handle_mouse() {
 ANK_FUNCTION(__ui_widget_sidebar_editor_handle_mouse)
 
 void __ui_window_city_draw() {
+    window_ui_canvas_scope canvas;
     window_city_draw();
 }
 ANK_FUNCTION(__ui_window_city_draw)
@@ -402,9 +409,32 @@ void __ui_widget_sidebar_set_type(int id) {
 }
 ANK_FUNCTION_1(__ui_widget_sidebar_set_type)
 int __ui_widget_sidebar_city_offset_x() {
-    return widget_sidebar_city_offset_x();
+    return (int)(widget_sidebar_city_offset_x() / window_ui_scale_current());
 }
 ANK_FUNCTION(__ui_widget_sidebar_city_offset_x)
+
+namespace {
+    std::vector<float> g_canvas_scale_stack;
+}
+
+// Scripts drawing the city's HUD (the top menu bar) from inside a pop-up wrap it in these: canvas scale,
+// and no offset from the pop-up's position.
+void __ui_canvas_scale_push() {
+    g_canvas_scale_stack.push_back(window_ui_scale_current());
+    window_ui_scale_apply(1.0f, true);
+    ui::begin_widget({0, 0}, false);
+}
+ANK_FUNCTION(__ui_canvas_scale_push)
+
+void __ui_canvas_scale_pop() {
+    if (g_canvas_scale_stack.empty()) {
+        return;
+    }
+    ui::end_widget();
+    window_ui_scale_apply(g_canvas_scale_stack.back(), true);
+    g_canvas_scale_stack.pop_back();
+}
+ANK_FUNCTION(__ui_canvas_scale_pop)
 
 void __ui_game_undo_perform() {
     game_undo_perform();

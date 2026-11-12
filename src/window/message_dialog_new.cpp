@@ -436,6 +436,7 @@ int ui::message_dialog_base::draw_background(UiFlags flags) {
     autoconfig_window::draw_background(flags);
 
     if (background_callback) {
+        window_ui_canvas_scope canvas;
         background_callback();
         // City/sidebar draw registers HUD buttons; drop them so only the dialog is interactive.
         ui::clear_active_elements();
@@ -544,7 +545,10 @@ void ui::message_dialog_base::button_advisor(int advisor) {
 }
 
 void ui::message_dialog_base::show(xstring text_id, int message_id, void (*background_callback)(void)) {
-    init_data(text_id, message_id, background_callback);
+    {
+        window_ui_scale_scope scaled(window_ui_scale_for("window_message_dialog"));
+        init_data(text_id, message_id, background_callback);
+    }
 
     static window_type instance = {
         "window_message_dialog",

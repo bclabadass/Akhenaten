@@ -42,3 +42,23 @@ void window_show(const window_type* window);
 xstring window_get_id(void);
 
 void window_go_back(void);
+
+// Pop-up windows and the title screen are drawn larger on the iPhone Duo's inner screen
+// (screen_popup_scale). While a scaled window lays out, draws or takes input, the screen size and
+// the mouse are in its smaller virtual coordinates and the renderer scales its drawing up.
+float window_ui_scale_for(xstring id);
+float window_ui_scale_current();
+void window_ui_scale_apply(float scale, bool record_for_flush);
+
+// Runs a block at a window's scale: its open handler, or the city and its HUD drawn from inside a pop-up (scale 1).
+struct window_ui_scale_scope {
+    float scale_before;
+    explicit window_ui_scale_scope(float scale) : scale_before(window_ui_scale_current()) {
+        window_ui_scale_apply(scale, true);
+    }
+    ~window_ui_scale_scope() { window_ui_scale_apply(scale_before, true); }
+};
+
+struct window_ui_canvas_scope : window_ui_scale_scope {
+    window_ui_canvas_scope() : window_ui_scale_scope(1.0f) {}
+};

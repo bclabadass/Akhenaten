@@ -217,6 +217,11 @@ function top_menu_calc_menu_size(menu) {
 	}
 }
 
+// The iPhone Duo's inner screen (screen_inner_unfolded): pop-up windows and the title screen are drawn this much larger.
+inner_screen {
+	popup_scale : 1.5
+}
+
 top_menu_widget {
 	offset {x: 10, y: 6}
 	submenu_offset {x: 8, y: -8}
