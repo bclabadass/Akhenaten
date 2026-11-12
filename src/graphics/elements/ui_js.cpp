@@ -173,6 +173,12 @@ int __ui_text_width(pcstr text, int font) {
 }
 ANK_FUNCTION_2(__ui_text_width)
 
+int __ui_font_line_height(int font) {
+    const font_definition* def = font_definition_for((e_font)font);
+    return def ? def->line_height : 0;
+}
+ANK_FUNCTION_1(__ui_font_line_height)
+
 xstring __ui_text_ellipsize(pcstr text, int font, int max_width) {
     if (!text) {
         return "";

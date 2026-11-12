@@ -67,9 +67,11 @@ sidebar_window_expanded {
 
     extra_block_x      : -24
     expanded_offset_x  : 186
-    // Inner screen: the Overlays link's text is the top menu bar's size, at this offset in the sidebar.
+    // Duo: the Overlays label is drawn this far into the sidebar; on the inner screen at the top menu bar's size.
     overlays_text_x    : 20
     overlays_text_dy   : -3
+    // Folded screen: the label sits this much further right than the link's own text did.
+    overlays_folded_text_dx : 10
 
     slider {
         deceleration_offset_x : 125
@@ -250,32 +252,40 @@ function window_build_menu_on_draw(window) {
     }
 }
 
+// Offset of the label from the link's left edge.
+function sidebar_window_overlays_label_x(link, scale) {
+    return scale == 1 ? 1 + sidebar_window_expanded.overlays_folded_text_dx : sidebar_window_expanded.overlays_text_x - link.pos.x
+}
+
 function sidebar_window_overlays_label(window) {
     var link = window.show_overlays
-    if (top_menu_text_scale() == 1) {
+    var scale = top_menu_text_scale()
+    if (!__platform_is_ios()) {
         link.text = ui.sidebar_overlay_link_text()
         return
     }
 
-    // Inner screen: drawn over the sidebar in ui_draw_after; the link keeps the tap area.
+    // Duo: drawn over the sidebar in ui_draw_after; the link keeps the tap area.
     link.text = ""
-    var width = Math.ceil(__ui_text_width(ui.sidebar_overlay_link_text(), FONT_NORMAL_BLACK_ON_LIGHT) * top_menu_text_scale())
-    link.size = { x: Math.max(link.size.x, sidebar_window_expanded.overlays_text_x - link.pos.x + width), y: link.size.y }
+    var width = Math.ceil(__ui_text_width(ui.sidebar_overlay_link_text(), FONT_NORMAL_BLACK_ON_LIGHT) * scale)
+    link.size = { x: Math.max(link.size.x, sidebar_window_overlays_label_x(link, scale) + width), y: link.size.y }
 }
 
 [es=(sidebar_window_expanded, ui_draw_after)]
 function sidebar_window_expanded_draw_overlays_label(window) {
-    var scale = top_menu_text_scale()
-    if (scale == 1) {
+    if (!__platform_is_ios()) {
         return
     }
 
+    var scale = top_menu_text_scale()
     var link = window.show_overlays
     var left = __ui_widget_sidebar_city_offset_x() + link.pos.x
     var top = __top_menu_height() - top_menu_widget.height + link.pos.y
     var hovered = __mouse.x >= left && __mouse.x < left + link.size.x && __mouse.y >= top && __mouse.y < top + link.size.y
     var font = hovered ? FONT_NORMAL_YELLOW : FONT_NORMAL_BLACK_ON_LIGHT
-    __ui_label_scaled(ui.sidebar_overlay_link_text(), { x: left - link.pos.x + sidebar_window_expanded.overlays_text_x, y: top + sidebar_window_expanded.overlays_text_dy }, font, scale)
+    // Folded screen: same height as the link's own centered text.
+    var dy = scale == 1 ? ((link.size.y - __ui_font_line_height(FONT_NORMAL_BLACK_ON_LIGHT)) / 2) | 0 : sidebar_window_expanded.overlays_text_dy
+    __ui_label_scaled(ui.sidebar_overlay_link_text(), { x: left + sidebar_window_overlays_label_x(link, scale), y: top + dy }, font, scale)
 }
 
 [es=(sidebar_window_expanded, show_overlays)]
