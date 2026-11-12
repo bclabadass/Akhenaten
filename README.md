@@ -2,7 +2,7 @@
 
 **Pharaoh + Cleopatra on iPhone.** iKhenaten is a fork of [Akhenaten](https://github.com/dalerank/Akhenaten),
 the open-source reimplementation of Impressions Games' _Pharaoh_ (1999), that runs natively on iOS.
-It is developed and played on a foldable iPhone, on both its folded and unfolded screens.
+It is developed and played on an iPhone Duo, on both its folded and unfolded screens.
 
 The iOS work is on the [`ios-port`](https://github.com/bclabadass/iKhenaten/tree/ios-port) branch.
 Below the line is upstream Akhenaten's own README.
