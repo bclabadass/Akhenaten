@@ -43,6 +43,8 @@ Most of these affect every platform, and each comes with an integral test in [`t
   completed.
 - Burning ruins could leave black tiles where a merged house burned, and loaded fires had no flames.
 - Statues showed the wrong statue in their fourth rotation.
+- Mission briefings from Nekhen on were silent on iOS, and the historical-period videos were never
+  played; they now play before each period's first mission.
 - Granary roofs showed the wrong food, and overseer screens lost their layout after a resize.
 - A failing script could break the top menu, sidebar and game timer.
 
@@ -72,7 +74,6 @@ the open to-do list.
 ## Known issues
 - Saves from the original _Pharaoh_ can load corrupted (an upstream issue).
 - The unfolded screen is laid out for landscape only.
-- Mission narration and the historical-period videos aren't played yet.
 
 ---
 
