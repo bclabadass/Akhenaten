@@ -5441,6 +5441,29 @@ static int __test_map_multi_tile_size(int x, int y) {
 }
 ANK_FUNCTION_2(__test_map_multi_tile_size);
 
+static int __test_map_multi_tile_xy(int x, int y) {
+    return map_property_multi_tile_xy(tile2i(x, y).grid_offset());
+}
+ANK_FUNCTION_2(__test_map_multi_tile_xy);
+
+static bool __test_map_is_draw_tile(int x, int y) {
+    return map_property_is_draw_tile(tile2i(x, y).grid_offset()) != 0;
+}
+ANK_FUNCTION_2(__test_map_is_draw_tile);
+
+// Writes a 2x2 building's tile layout (draw tile at the bottom-left, as for the north view) without
+// touching the buildings or images on those tiles.
+static void __test_map_set_2x2_layout(int x, int y) {
+    for (int dy = 0; dy < 2; dy++) {
+        for (int dx = 0; dx < 2; dx++) {
+            const int g = tile2i(x + dx, y + dy).grid_offset();
+            map_property_set_multi_tile_size(g, 2);
+            map_property_set_multi_tile_xy(g, dx, dy, dx == 0 && dy == 1);
+        }
+    }
+}
+ANK_FUNCTION_2(__test_map_set_2x2_layout);
+
 static int __test_tile_road_network(int grid_offset) {
     if (grid_offset < 0) {
         return 0;

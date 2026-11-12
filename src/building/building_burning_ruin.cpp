@@ -8,6 +8,8 @@
 #include "grid/terrain.h"
 #include "building/destruction.h"
 #include "grid/building.h"
+#include "grid/image.h"
+#include "grid/property.h"
 #include "grid/grid.h"
 #include "scenario/scenario.h"
 #include "grid/road_access.h"
@@ -86,12 +88,49 @@ void building_burning_ruin::on_create(int orientation) {
     map_building_tiles_add(id(), tile(), base.size, img_id, TERRAIN_BUILDING);
 }
 
+// Each burning tile is its own 1x1 ruin. A ruin left on a 2x2 house's tile layout (Nubt V) was drawn
+// as one corner of a 2x2 building, so the city skipped its other tiles and they showed black.
+void building_burning_ruin::keep_single_tile() {
+    const int grid_offset = tile().grid_offset();
+    if (map_property_multi_tile_size(grid_offset) != 1 || map_property_multi_tile_xy(grid_offset) != 0
+        || !map_property_is_draw_tile(grid_offset)) {
+        map_property_set_multi_tile_size(grid_offset, 1);
+        map_property_set_multi_tile_xy(grid_offset, 0, 0, 1);
+    }
+}
+
+void building_burning_ruin::on_post_load() {
+    building_impl::on_post_load();
+    if (base.state == BUILDING_STATE_RUBBLE) {
+        return;
+    }
+
+    keep_single_tile();
+
+    // The fire animation is chosen in on_create and isn't saved; pick it again from the base image.
+    const int image_id = map_image_at(tile().grid_offset());
+    int variant = 0;
+    for (int i = 0; i < current_params().fire_animations; i++) {
+        xstring base_name;
+        base_name.printf("base%d", i);
+        if (anim(base_name).first_img() == image_id) {
+            variant = i;
+            break;
+        }
+    }
+    xstring anim_name;
+    anim_name.printf("fire%d", variant);
+    set_animation(anim_name);
+}
+
 void building_burning_ruin::on_tick(bool refresh_only) {
     building_impl::on_tick(refresh_only);
 
     if (base.state == BUILDING_STATE_RUBBLE) {
         return;
     }
+
+    keep_single_tile();
 
     if (base.fire_duration <= 0) {
         base.state = BUILDING_STATE_RUBBLE;
