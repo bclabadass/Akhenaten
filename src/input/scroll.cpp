@@ -6,6 +6,7 @@
 #include "graphics/screen.h"
 #include "graphics/view/view.h" // g_camera
 #include "graphics/view/zoom.h"
+#include "graphics/window.h"
 #include "input/touch.h"
 #include "game/game_config.h"
 #include "game/game.h"
@@ -224,8 +225,9 @@ int scroll_t::set_speed_from_drag(bool keep_delta, type view) {
         delta_y = std::lround(fy);
     } else {
         const touch_t* t = get_earliest_touch();
-        // The camera moves in world pixels; zoom decides how many of them a finger's screen pixel covers.
-        drag.touch_world_per_screen = view == CITY ? g_zoom.get_percentage() / 100.0 : 1.0;
+        // The camera moves in world pixels; zoom decides how many of them a finger's screen pixel covers. Other views
+        // (the world map) work in their window's pixels, which a larger UI scale makes bigger than canvas pixels.
+        drag.touch_world_per_screen = view == CITY ? g_zoom.get_percentage() / 100.0 : 1.0 / window_ui_scale_current();
         delta_x = -t->frame_movement.x * drag.touch_world_per_screen;
         delta_y = -t->frame_movement.y * drag.touch_world_per_screen;
     }
