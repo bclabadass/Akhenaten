@@ -70,6 +70,9 @@ function bazaar_orders_list_on_click_item(p) {
     city.get_bazaar(city.object_info.bid).toggle_res_accepted(p.user_data)
 }
 
+// The second icon sits this far in from the row's right edge, so it follows the list's width.
+var bazaar_orders_right_icon_inset = 39
+
 function bazaar_orders_list_on_render_item(p) {
     var resId = p.user_data
     if (resId === undefined || resId === RESOURCE_NONE) {
@@ -80,7 +83,7 @@ function bazaar_orders_list_on_render_item(p) {
 
     if (available) {
         ui.resource_icon([p.x + 25, p.y + 2], resId)
-        ui.resource_icon([p.x + 25 + px(23), p.y + 2], resId)
+        ui.resource_icon([p.x + p.sizex - bazaar_orders_right_icon_inset, p.y + 2], resId)
 
         ui.label_ex(__loc(23, resId), [p.x + 85, p.y], FONT_NORMAL_WHITE_ON_DARK, UiFlags_AlignYCentered, 150)
 
@@ -95,7 +98,7 @@ function bazaar_orders_list_on_render_item(p) {
     } else {
         // good not produced/imported in this city: grayed out, non-clickable
         ui.resource_icon_flags([p.x + 25, p.y + 2], resId, UiFlags_Grayscale)
-        ui.resource_icon_flags([p.x + 25 + px(23), p.y + 2], resId, UiFlags_Grayscale)
+        ui.resource_icon_flags([p.x + p.sizex - bazaar_orders_right_icon_inset, p.y + 2], resId, UiFlags_Grayscale)
 
         ui.label_ex(__loc(23, resId), [p.x + 85, p.y], FONT_NORMAL_BLACK_ON_DARK, UiFlags_AlignYCentered, 150)
     }
@@ -110,9 +113,10 @@ bazaar_orders_window {
     ui {
         background   : outer_panel({size[29, 24]}),
         title        : text({pos[0, 12], size[px(28), 0], text:{group:98, id:5}, font : FONT_LARGE_BLACK_ON_LIGHT, align:"center"})
+        // 25 blocks leave room inside the 29-block frame for the scroll bar drawn after the list.
         goods_list   : scrollable_list({
             pos[16, 42]
-            size[27, 14]
+            size[25, 14]
             view_items: 10
             buttons_size_y: 20
             buttons_margin_x: 0
