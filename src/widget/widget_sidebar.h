@@ -67,6 +67,7 @@ struct sidebar_window_collapsed_t : public autoconfig_window {
     image_desc relief_block;
     int extra_block_x;
     int expanded_offset_x;
+    int edge_strip_width;
     slide_driver slider;
 
     // dynamic
@@ -102,10 +103,8 @@ ANK_CONFIG_STRUCT(ui::sidebar_window_expanded_t,
     extra_block_x, expanded_offset_x,
     def_image, slider)
 
-ANK_CONFIG_STRUCT(ui::sidebar_window_collapsed_t,
-    extra_block, relief_block,
-    extra_block_x, expanded_offset_x,
-    slider)
+ANK_CONFIG_STRUCT(ui::sidebar_window_collapsed_t, extra_block, relief_block, extra_block_x, expanded_offset_x,
+  edge_strip_width, slider)
 
 void widget_sidebar_city_init();
 int widget_sidebar_city_offset_x();

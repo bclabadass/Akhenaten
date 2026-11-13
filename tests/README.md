@@ -323,6 +323,7 @@ After each test script loads, the driver calls `js_vm_sync({})` so any top-level
 | `__test_storageyard_papyrus_task_amount(yard_bid)` | int | Units of papyrus the yard would send to a scribal school / library / office now, else 0 |
 | `__test_building_need_resource_amount(bid, resource)` | int | Building's `need_resource_amount` (capacity − stored) |
 | `__test_storage_rooms_dump()` | string | `room:yard:resource:amount;` for every storage room |
+| `__test_screen_pixel(x, y)` | int | RGB of a pixel in the last drawn frame (canvas pixels at 100% or on the inner screen; window pixels at other desktop scales), −1 if unreadable |
 | `__test_sound_ready()` / `__test_sound_channel_file(ch)` / `__test_sound_channel_loaded(ch)` | bool / string / bool | Mixer running; a sound channel's file (empty under `--nosound`/`--no-resource`); whether its file has loaded |
 | `__test_yards_stored(resource)` / `__test_yards_stored_staffed(resource)` | int | City granite/etc. in yards (all / staffed only) |
 | `__test_building_current_image(bid)` | int | Monument `building_image_get()` |

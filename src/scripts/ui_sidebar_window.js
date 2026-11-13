@@ -6,6 +6,8 @@ sidebar_window_collapsed {
 
     expanded_offset_x  : 66
     extra_block_x      : -24
+    // The beaded strip down the panel's left side, drawn at 1x when the panel is scaled.
+    edge_strip_width   : 7
 
     slider {
         deceleration_offset_x     : 5

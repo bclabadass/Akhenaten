@@ -349,6 +349,17 @@ static vec2i __test_window_pos(xstring section) {
 }
 ANK_FUNCTION_1(__test_window_pos);
 
+// RGB of a canvas pixel in the last drawn frame, or -1 if it can't be read.
+static int __test_screen_pixel(int x, int y) {
+    painter ctx = game.painter();
+    color c = 0;
+    if (!g_render.save_screen_buffer(ctx, &c, x, y, 1, 1, 1)) {
+        return -1;
+    }
+    return (int)(c & 0xffffff);
+}
+ANK_FUNCTION_2(__test_screen_pixel);
+
 static bool __test_sound_ready() {
     return g_sound.is_initialized();
 }

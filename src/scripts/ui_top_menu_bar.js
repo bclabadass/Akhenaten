@@ -151,6 +151,21 @@ function top_menu_draw_background() {
 
 	draw_block(current_sidebar_offset - step)
 
+	// The beaded strip is the image's bottom edge; scaling the bar would thicken it, so it is drawn
+	// again at 1x along the bottom, matching the strips down the control panel and city edges.
+	var strip = top_menu_widget.background_strip_height
+	if (scale != 1 && strip > 0) {
+		var bar_height = __top_menu_height()
+		var step_1x = block_width - want_sidebar_offset
+		var y = bar_height - block_img.height
+		ui.set_clip_rectangle([0, bar_height - strip], [screen_width, strip])
+		for (var x1 = -(screen_width - current_sidebar_offset); x1 < screen_width; x1 += step_1x) {
+			ui.draw_texture({ x: x1, y: y }, block_img.tid)
+		}
+		ui.draw_texture({ x: current_sidebar_offset - step_1x, y: y }, block_img.tid)
+		ui.reset_clip_rectangle()
+	}
+
 	var rot = top_menu_widget.rotate_img
 	if (!rot) {
 		return

@@ -198,6 +198,17 @@ void ui::sidebar_window_collapsed_t::ui_draw_foreground(UiFlags flags) {
     ui.pos.x = x_offset;
     ui.pos.y = (int)(top_menu_height() / scale) - TOP_MENU_HEIGHT;
 
+    // Scaled, the panel's own beaded left strip would be thicker than every other strip: hide it,
+    // and widget_sidebar_city_draw_foreground draws a 1x one. The relief is drawn straight away,
+    // the rest through the UI queue, so both are clipped.
+    const bool own_strip_hidden = scale > 1.0f;
+    const vec2i clip_pos{x_offset + edge_strip_width, 0};
+    const vec2i clip_size{screen_width(), screen_height()};
+    if (own_strip_hidden) {
+        graphics_set_clip_rectangle(clip_pos, clip_size);
+        ui::push(ui::cmd_t::clip_set, ui::opt::Pos{clip_pos}, ui::opt::Size{clip_size});
+    }
+
     {
         OZZY_PROFILER_SECTION(_, "sidebar_window_draw")
         ui.begin_widget(pos);
@@ -214,6 +225,33 @@ void ui::sidebar_window_collapsed_t::ui_draw_foreground(UiFlags flags) {
 
     int relief_y_offset = SIDEBAR_MAIN_SECTION_HEIGHT + (int)(top_menu_height() / scale);
     sidebar_common_draw_relief({ x_offset, relief_y_offset }, relief_block);
+
+    if (own_strip_hidden) {
+        graphics_reset_clip_rectangle();
+        ui::push(ui::cmd_t::clip_reset);
+    }
+}
+
+// Canvas pixels the city gains when the scaled collapsed panel's strip is drawn at 1x.
+static int collapsed_strip_trim() {
+    const float scale = screen_collapsed_sidebar_scale();
+    return scale > 1.0f ? (int)(sidebar_window_collapsed.edge_strip_width * (scale - 1.0f)) : 0;
+}
+
+static void draw_collapsed_edge_strip() {
+    const auto& c = sidebar_window_collapsed;
+    const image_t* relief = image_get(c.relief_block);
+    if (!relief || relief->height <= 0) {
+        return;
+    }
+    const int x = (int)(c.pos.x * screen_collapsed_sidebar_scale()) + collapsed_strip_trim();
+    const int top = top_menu_height();
+    ui::push(ui::cmd_t::clip_set, ui::opt::Pos{vec2i{x, top}},
+      ui::opt::Size{vec2i{c.edge_strip_width, screen_height() - top}});
+    for (int y = top; y < screen_height(); y += relief->height) {
+        ui::image_abs(c.relief_block.tid(), {x, y});
+    }
+    ui::push(ui::cmd_t::clip_reset);
 }
 
 void widget_sidebar_city_init() {
@@ -222,8 +260,9 @@ void widget_sidebar_city_init() {
 }
 
 int widget_sidebar_city_offset_x() {
-    return g_camera.sidebar_collapsed ? (int)(sidebar_window_collapsed.pos.x * screen_collapsed_sidebar_scale())
-                                      : sidebar_window_expanded.pos.x;
+    return g_camera.sidebar_collapsed
+             ? (int)(sidebar_window_collapsed.pos.x * screen_collapsed_sidebar_scale()) + collapsed_strip_trim()
+             : sidebar_window_expanded.pos.x;
 }
 
 int widget_sidebar_city_offset_max() {
@@ -234,7 +273,7 @@ int widget_sidebar_city_offset_max() {
 int widget_sidebar_city_collapsed_max() {
     const auto& c = sidebar_window_collapsed;
     const int strip = -c.extra_block_x;
-    return (int)((c.expanded_offset_x - strip) * screen_collapsed_sidebar_scale()) + strip;
+    return (int)((c.expanded_offset_x - strip) * screen_collapsed_sidebar_scale()) + strip - collapsed_strip_trim();
 }
 
 int widget_sidebar_city_expanded_max() {
@@ -272,8 +311,13 @@ void widget_sidebar_city_draw_foreground() {
         const auto& eb = sidebar_window_collapsed;
         draw_sidebar_extra_blocks(eb.extra_block, sw + eb.extra_block_x, eb.extra_block_size);
         // Drawn in the panel's own coordinates (pos, expanded_offset_x); the city's width uses the scaled ones.
-        window_ui_scale_scope scaled(screen_collapsed_sidebar_scale());
-        sidebar_window_collapsed.ui_draw_foreground(UiFlags_None);
+        {
+            window_ui_scale_scope scaled(screen_collapsed_sidebar_scale());
+            sidebar_window_collapsed.ui_draw_foreground(UiFlags_None);
+        }
+        if (collapsed_strip_trim() > 0) {
+            draw_collapsed_edge_strip();
+        }
     } else {
         sidebar_window_expanded.ui_draw_foreground(UiFlags_None);
         const auto& eb = sidebar_window_expanded;

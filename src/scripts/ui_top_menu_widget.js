@@ -244,6 +244,7 @@ top_menu_widget {
 	height : 30
 	header_hit_height : 12
 	background { pack:PACK_GENERAL, id:121, offset:8 }
+	background_strip_height : 8
 	sidebar_offset : 158
 	spacing : 16
 	unfolded_edge_inset : 80

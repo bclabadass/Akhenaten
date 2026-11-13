@@ -15,9 +15,11 @@ function t310_layout() {
 }
 
 var T310_EDGE_STRIP = 24
+// The panel's beaded left strip (7 pixels) is drawn at 1x, not 2x, so the city keeps 7 more pixels (321).
+var T310_BEAD_STRIP = 7
 
 function t310_wide(desktop_width) {
-    return 2 * (desktop_width - T310_EDGE_STRIP) + T310_EDGE_STRIP
+    return 2 * (desktop_width - T310_EDGE_STRIP) + T310_EDGE_STRIP - T310_BEAD_STRIP
 }
 
 function t310_tap_road(x, y) {
