@@ -69,3 +69,6 @@ doc
 # Agent configuration: shared rules are committed, per-developer overrides are not
 /.claude/settings.local.json
 /.claude/*.local.json
+
+# iOS port working notes: personal, kept local only
+IOS_PORT.md

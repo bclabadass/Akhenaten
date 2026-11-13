@@ -68,8 +68,6 @@ Then copy your Pharaoh folder (the one containing `campaign.txt`) into the app's
 install: it would replace the iOS defaults, such as pinch zoom being on.
 
 For the Simulator, use `cmake/ios-sim.toolchain.cmake` and build with `-sdk iphonesimulator`.
-[`IOS_PORT.md`](IOS_PORT.md) has the full working notes: build checks, what changed and why, and
-the open to-do list.
 
 ## Known issues
 - Saves from the original _Pharaoh_ can load corrupted (an upstream issue).
