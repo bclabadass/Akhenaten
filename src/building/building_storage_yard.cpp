@@ -534,6 +534,14 @@ storage_worker_task building_storageyard_deliver_weapons(building *b) {
     return try_send(second);
 }
 
+// Yards send whole loads; a building short by less than a load waits, as for workshops.
+static int whole_load_delivery(int available, int want) {
+    if (want < UNITS_PER_LOAD) {
+        return 0;
+    }
+    return std::min(available, want - want % UNITS_PER_LOAD);
+}
+
 storage_worker_task building_storageyard_deliver_timber_to_shipyard_school(building * b) {
     if (g_city.buildings.count_active(BUILDING_SHIPWRIGHT) <= 0 || g_city.resource.is_stockpiled(RESOURCE_TIMBER)) {
         return { STORAGEYARD_TASK_NONE };
@@ -554,8 +562,8 @@ storage_worker_task building_storageyard_deliver_timber_to_shipyard_school(build
             space = space->next_room();
         }
 
-        if (available > 0) {
-            int amount = std::min(available, school_want);
+        const int amount = whole_load_delivery(available, school_want);
+        if (amount > 0) {
             return { STORAGEYARD_TASK_DELIVERING, &warehouse->base, amount, RESOURCE_TIMBER };
         }
     }
@@ -587,8 +595,8 @@ storage_worker_task building_storageyard_deliver_beer_to_senet_house(building *b
             space = space->next_room();
         }
 
-        if (available > 0) {
-            int amount = std::min(available, school_want);
+        const int amount = whole_load_delivery(available, school_want);
+        if (amount > 0) {
             return { STORAGEYARD_TASK_DELIVERING, &warehouse->base, amount, RESOURCE_BEER };
         }
     }
@@ -632,8 +640,8 @@ storage_worker_task building_storageyard_deliver_resource_to_zoo(building *b) {
             space = space->next_room();
         }
 
-        if (available > 0) {
-            int amount = std::min(available, want);
+        const int amount = whole_load_delivery(available, want);
+        if (amount > 0) {
             return { STORAGEYARD_TASK_DELIVERING, &warehouse->base, amount, resource };
         }
     }
@@ -677,8 +685,8 @@ storage_worker_task building_storageyard_deliver_papyrus_to_scribal_school(build
             space = space->next_room();
         }
 
-        if (available > 0) {
-            int amount = std::min(available, want);
+        const int amount = whole_load_delivery(available, want);
+        if (amount > 0) {
             return {STORAGEYARD_TASK_DELIVERING, &warehouse->base, amount, RESOURCE_PAPYRUS};
         }
     }
@@ -831,6 +839,15 @@ storage_worker_task building_storageyard_deliver_to_monuments(building *b) {
                 int on_site = needed * (int)d.resources_pct[resource] / 100;
                 int in_flight = building_monument_resource_in_delivery(&monument->base, resource);
                 remaining = needed - on_site - in_flight;
+                // resources_pct is a whole percent, so on_site falls short by a few units per load
+                // (8 loads of 100 into 900 read as 88% = 792): haul whole loads, and one load when
+                // the shortfall is only rounding and nothing is on the way.
+                if (remaining > 0) {
+                    remaining = (remaining + UNITS_PER_LOAD / 2) / UNITS_PER_LOAD * UNITS_PER_LOAD;
+                    if (remaining == 0 && in_flight == 0) {
+                        remaining = UNITS_PER_LOAD;
+                    }
+                }
             }
             if (remaining <= 0) {
                 continue;

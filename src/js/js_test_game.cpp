@@ -1360,6 +1360,21 @@ static int __test_building_destroy_by_enemy(int bid) {
 }
 ANK_FUNCTION_1(__test_building_destroy_by_enemy);
 
+// "room:yard:resource:amount;" for every storage room, in building id order.
+static xstring __test_storage_rooms_dump() {
+    std::string out;
+    buildings_valid_do([&](building& b) {
+        if (b.type != BUILDING_STORAGE_ROOM) {
+            return;
+        }
+        const resource_value& v = b.stored_first();
+        out += std::to_string(b.id) + ":" + std::to_string(b.main()->id) + ":" + std::to_string((int)v.type) + ":"
+               + std::to_string(v.value) + ";";
+    });
+    return xstring(out.c_str());
+}
+ANK_FUNCTION(__test_storage_rooms_dump);
+
 static int __test_destroy_buildings_of_type(int type) {
     if (type <= BUILDING_NONE || type >= BUILDING_MAX) {
         return 0;
@@ -4283,6 +4298,37 @@ static int __test_storageyard_monument_task_resource(int yard_bid) {
     return (int)task.resource;
 }
 ANK_FUNCTION_1(__test_storageyard_monument_task_resource);
+
+// Units the yard would load on a monument sled now, else 0.
+static int __test_storageyard_monument_task_amount(int yard_bid) {
+    building* b = building_get(yard_bid);
+    if (!b || !b->dcast_storage_yard()) {
+        return 0;
+    }
+    storage_worker_task task = building_storageyard_deliver_to_monuments(b);
+    return task.result == STORAGEYARD_TASK_MONUMENT ? task.amount : 0;
+}
+ANK_FUNCTION_1(__test_storageyard_monument_task_amount);
+
+// Units of papyrus the yard would send to a scribal school, library or office now, else 0.
+storage_worker_task building_storageyard_deliver_papyrus_to_scribal_school(building* b);
+static int __test_storageyard_papyrus_task_amount(int yard_bid) {
+    building* b = building_get(yard_bid);
+    if (!b || !b->dcast_storage_yard()) {
+        return 0;
+    }
+    storage_worker_task task = building_storageyard_deliver_papyrus_to_scribal_school(b);
+    return task.result == STORAGEYARD_TASK_DELIVERING ? task.amount : 0;
+}
+ANK_FUNCTION_1(__test_storageyard_papyrus_task_amount);
+
+static int __test_building_need_resource_amount(int bid, int resource) {
+    building* b = building_get(bid);
+    return (b && b->is_valid() && resource > RESOURCE_NONE && resource < RESOURCES_MAX)
+             ? b->need_resource_amount((e_resource)resource)
+             : 0;
+}
+ANK_FUNCTION_2(__test_building_need_resource_amount);
 
 static int __test_yards_stored(int resource) {
     if (resource <= RESOURCE_NONE || resource >= RESOURCES_MAX) {

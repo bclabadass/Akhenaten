@@ -319,6 +319,11 @@ After each test script loads, the driver calls `js_vm_sync({})` so any top-level
 | `__test_monument_resource_pct(bid, resource)` | int | Monument `resources_pct[resource]` (0..100+; −1 if invalid) |
 | `__test_storage_yard_add_resource(bid, resource, amount)` | boolean | Force-stock a Storage Yard (bypass accept rules) |
 | `__test_storageyard_monument_task_resource(yard_bid)` | int | Resource id if yard would start a monument sled task, else 0 (stockpile check) |
+| `__test_storageyard_monument_task_amount(yard_bid)` | int | Units the yard would load on a monument sled now, else 0 |
+| `__test_storageyard_papyrus_task_amount(yard_bid)` | int | Units of papyrus the yard would send to a scribal school / library / office now, else 0 |
+| `__test_building_need_resource_amount(bid, resource)` | int | Building's `need_resource_amount` (capacity − stored) |
+| `__test_storage_rooms_dump()` | string | `room:yard:resource:amount;` for every storage room |
+| `__test_sound_ready()` / `__test_sound_channel_file(ch)` / `__test_sound_channel_loaded(ch)` | bool / string / bool | Mixer running; a sound channel's file (empty under `--nosound`/`--no-resource`); whether its file has loaded |
 | `__test_yards_stored(resource)` / `__test_yards_stored_staffed(resource)` | int | City granite/etc. in yards (all / staffed only) |
 | `__test_building_current_image(bid)` | int | Monument `building_image_get()` |
 | `__test_camera_center_building(bid)` | undefined | Center camera on building / monument `center_point` |
