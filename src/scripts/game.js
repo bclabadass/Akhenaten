@@ -164,6 +164,7 @@ game_features {
     @gameui_flat_buildings {}
     @gameui_highlight_top_menu_hover {}
     @gameui_touch_cancel_button {}
+    @gameui_transparent_ghost {}
     @count { get: __game_features_count }
 }
 

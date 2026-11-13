@@ -170,6 +170,14 @@ void ImageDraw::merge_block_commands_into_global(const render_command_block& blo
     }
 }
 
+ImageDraw::render_command_vec& ImageDraw::commands_for(painter& ctx) {
+    return ctx.command_buffer ? *ctx.command_buffer : g_render_commands;
+}
+
+ImageDraw::render_command_vec& ImageDraw::subcommands_for(painter& ctx) {
+    return ctx.subcommand_buffer ? *ctx.subcommand_buffer : g_render_subcommands;
+}
+
 render_command_t& ImageDraw::create_command(painter& ctx, render_command_t::e_render_type rt) {
     render_command_vec* dst = ctx.command_buffer ? ctx.command_buffer : &g_render_commands;
     auto& command = dst->emplace_back();

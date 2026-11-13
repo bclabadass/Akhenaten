@@ -9,6 +9,7 @@
 #include "graphics/elements/rich_text.h"
 #include "graphics/elements/ui.h"
 #include "platform/renderer.h"
+#include "building/construction/build_planner.h"
 #include "building/building_fort.h"
 #include "building/building_barracks.h"
 #include "building/building_gatehouse.h"
@@ -348,6 +349,15 @@ static vec2i __test_window_pos(xstring section) {
     return w ? w->pos : vec2i{-1, -1};
 }
 ANK_FUNCTION_1(__test_window_pos);
+
+extern build_planner::ghost_fade_stats g_ghost_fade_stats;
+// "drawn,faded,kept" for the last building preview.
+static xstring __test_ghost_fade_stats() {
+    char out[64];
+    snprintf(out, sizeof(out), "%d,%d,%d", g_ghost_fade_stats.drawn, g_ghost_fade_stats.faded, g_ghost_fade_stats.kept);
+    return xstring(out);
+}
+ANK_FUNCTION(__test_ghost_fade_stats);
 
 // RGB of a canvas pixel in the last drawn frame, or -1 if it can't be read.
 static int __test_screen_pixel(int x, int y) {

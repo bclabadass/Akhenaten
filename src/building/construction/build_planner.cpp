@@ -1492,12 +1492,38 @@ void build_planner::draw_overlay_tile(painter &ctx, int image_id, vec2i pixel, c
     command.location = SOURCE_LOCATION;
 }
 
+// Opacity of the see-through building preview (gameui_transparent_ghost).
+static constexpr uint32_t k_ghost_alpha = 153; // 60%
+build_planner::ghost_fade_stats g_ghost_fade_stats;
+
+static void fade_opaque_masks(ImageDraw::render_command_vec& commands, size_t from) {
+    for (size_t i = from; i < commands.size(); ++i) {
+        const uint32_t mask = commands[i].mask ? commands[i].mask : COLOR_MASK_NONE;
+        if ((mask & COLOR_CHANNEL_ALPHA) != COLOR_CHANNEL_ALPHA) {
+            g_ghost_fade_stats.kept++; // already translucent, like the 30% footprint tiles
+            continue;
+        }
+        commands[i].mask = (mask & ~COLOR_CHANNEL_ALPHA) | (k_ghost_alpha << COLOR_BITSHIFT_ALPHA);
+        g_ghost_fade_stats.faded++;
+    }
+}
+
 void build_planner::draw_graphics(painter &ctx) {
     // TODO: bring these all over the unified system
     // special graphics buildings
     vec2i pixel = pixel_coords_cache[0][0];
     const auto &preview = building_planer_renderer::get(build_type);
+    auto& commands = ImageDraw::commands_for(ctx);
+    auto& subcommands = ImageDraw::subcommands_for(ctx);
+    const size_t first_command = commands.size();
+    const size_t first_subcommand = subcommands.size();
     preview.ghost_preview(*this, ctx, start, end, pixel);
+    g_ghost_fade_stats = {};
+    g_ghost_fade_stats.drawn = (int)(commands.size() - first_command + subcommands.size() - first_subcommand);
+    if (game_features::gameui_transparent_ghost.to_bool()) {
+        fade_opaque_masks(commands, first_command);
+        fade_opaque_masks(subcommands, first_subcommand);
+    }
 }
 
 void build_planner::draw_road_access_marker(painter &ctx) {

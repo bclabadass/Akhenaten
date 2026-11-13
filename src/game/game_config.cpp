@@ -15,11 +15,14 @@
 
 static const char* CONF_FILENAME = "akhenaten.conf";
 
-// Pinch is the only way to zoom on a touchscreen, so zoom starts enabled there.
+// Pinch is the only way to zoom on a touchscreen, so zoom starts enabled there. A finger hides the
+// spot being built on, so the building preview starts see-through there too.
 #if defined(GAME_PLATFORM_IOS)
 static constexpr bool k_zoom_default = true;
+static constexpr bool k_transparent_ghost_default = true;
 #else
 static constexpr bool k_zoom_default = false;
+static constexpr bool k_transparent_ghost_default = false;
 #endif
 
 void ANK_REGISTER_CONFIG_ITERATOR(config_load_game_settings) {
@@ -146,6 +149,8 @@ namespace game_features {
     game_feature gameplay_recruiter_not_need_forts{ "gameplay_recruiter_not_need_forts", "#TR_CONFIG_RECRUITER_NOT_NEED_FORTS", false, false };
     game_feature gameui_highlight_top_menu_hover{ "gameui_highlight_top_menu_hover", "#TR_CONFIG_HIGHLIGHT_TOP_MENU_HOVER", false, false };
     game_feature gameui_touch_cancel_button{ "gameui_touch_cancel_button", "#TR_CONFIG_TOUCH_CANCEL_BUTTON", false, false };
+    game_feature gameui_transparent_ghost{
+      "gameui_transparent_ghost", "#TR_CONFIG_TRANSPARENT_GHOST", k_transparent_ghost_default, false};
     game_feature gameui_empire_city_old_names{ "gameui_empire_city_old_names", "#TR_CONFIG_EMPIRE_CITY_OLD_NAMES", false, false };
     game_feature gameplay_draw_cloud_shadows{ "gameplay_draw_cloud_shadows", "#TR_CONFIG_DRAW_CLOUD_SHADOWS", false, false };
     game_feature gameplay_building_road_closest{ "gameplay_building_road_closest", "#TR_CONFIG_BUILDING_CLOSEST_ROAD", false, false };

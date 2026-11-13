@@ -246,6 +246,7 @@ localization_en = [
   {key:"#TR_CONFIG_SHOW_INPUT_NEAR_CURSOR", text:"Show pressed keys and mouse buttons near cursor"}
   {key:"#TR_CONFIG_ROAD_PREVIEW_IN_MAP_ORDER", text:"Draw road construction preview in map render order"}
   {key:"#TR_CONFIG_TOUCH_CANCEL_BUTTON", text:"Show cancel button while placing (touch)"},
+  {key:"#TR_CONFIG_TRANSPARENT_GHOST", text:"See-through building preview while placing"},
   {key:"#TR_CONFIG_HIGHLIGHT_TOP_MENU_HOVER", text:"Highlight Top Menu Items"}
   {key:"#TR_CONFIG_EMPIRE_CITY_OLD_NAMES", text:"Show Old Names for city on empire map"}
   {key:"#TR_CONFIG_DRAW_CLOUD_SHADOWS", text:"Draw cloud shadows (experimental)"}

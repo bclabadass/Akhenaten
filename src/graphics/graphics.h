@@ -169,6 +169,10 @@ render_command_block& parallel_block_subcommands();
 render_command_vec& parallel_block_commands(int blk);
 render_command_vec& parallel_block_subcommands(int blk);
 
+/// The command and subcommand buffers that draws through this painter go to.
+render_command_vec& commands_for(painter& ctx);
+render_command_vec& subcommands_for(painter& ctx);
+
 /// Merge per-block buffers into g_render_commands/g_render_subcommands (fixes subcommand indices). Call from main thread after workers finish.
 void merge_block_commands_into_global(const render_command_block& block_commands,
                                       const render_command_block & block_subcommands);

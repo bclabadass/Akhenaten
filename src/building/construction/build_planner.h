@@ -192,6 +192,14 @@ public:
     void init_tiles(int size_x, int size_y);
 
     static void draw_building_ghost(painter &ctx, int image_id, vec2i pixel, color color_mask = COLOR_MASK_GREEN);
+
+    // What the last building preview drew: its draw commands, how many were made see-through, and
+    // how many were already translucent and kept as they were.
+    struct ghost_fade_stats {
+        int drawn = 0;
+        int faded = 0;
+        int kept = 0;
+    };
     static void draw_ghost_overlay(painter &ctx, int image_id, vec2i pixel);
     static void draw_from_below(painter &ctx, int image_id, vec2i pixel, color color_mask = COLOR_MASK_GREEN);
     static void draw_overlay_tile(painter &ctx, int image_id, vec2i pixel, color color_mask, float scale = 1.f);
