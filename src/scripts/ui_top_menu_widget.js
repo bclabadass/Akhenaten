@@ -226,12 +226,13 @@ inner_screen {
 	popup_scale : 1.5
 	// The collapsed control panel, in both orientations; the expanded panel keeps the canvas scale.
 	collapsed_sidebar_scale : 2
-	// Fixed-size pop-ups too wide for the portrait screen at popup_scale, with their widths: drawn just small enough to fit.
+	// Fixed-size pop-ups too wide for the portrait screen at popup_scale, with the width that must stay visible:
+	// drawn just small enough to fit. The selection windows' dialog is 640 wide inside a 1024 backdrop that may be cropped.
 	portrait_fit {
 		trade_prices_window { width : 896 }
-		window_scenario_selection { width : 1024 }
-		window_scenario_selection_campaign { width : 1024 }
-		window_scenario_selection_custom { width : 1024 }
+		window_scenario_selection { width : 640 }
+		window_scenario_selection_campaign { width : 640 }
+		window_scenario_selection_custom { width : 640 }
 		mission_choice_window { width : 1024 }
 	}
 }

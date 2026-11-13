@@ -8,7 +8,8 @@
 // - The top menu stays on one row: Debug and Render are left out, and the status fields are packed by
 //   their widths against the right inset.
 // - Fixed-size pop-ups too wide for portrait at 1.5x (inner_screen.portrait_fit) are drawn just small
-//   enough to fit; the rest keep 1.5x, and landscape is unchanged.
+//   enough to fit; the rest keep 1.5x, and landscape is unchanged. The scenario selection windows count only
+//   their 640-pixel dialog, which fits at 1.5x (their backdrop is cropped); the mission choice map does not.
 // Markers:
 //   [test-marker] screens_told_apart
 //   [test-marker] sidebar_follows_orientation
@@ -106,9 +107,11 @@ function run_test() {
 
     var trade = __test_window_ui_scale_for('trade_prices_window')
     var scen = __test_window_ui_scale_for('window_scenario_selection')
+    var camp = __test_window_ui_scale_for('window_scenario_selection_campaign')
+    var choice = __test_window_ui_scale_for('mission_choice_window')
     var chief = __test_window_ui_scale_for('advisor_chief_window')
-    __log_info_native('[test:309] portrait scales trade ' + trade + ' scenario ' + scen + ' chief ' + chief)
-    if (t309_near(trade, 999 / 896) && t309_near(scen, 999 / 1024) && chief == 1.5) {
+    __log_info_native('[test:309] portrait scales trade ' + trade + ' scenario ' + scen + ' campaign ' + camp + ' choice ' + choice + ' chief ' + chief)
+    if (t309_near(trade, 999 / 896) && scen == 1.5 && camp == 1.5 && t309_near(choice, 999 / 1024) && chief == 1.5) {
         __log_marker('portrait_popups_fit')
     }
 
