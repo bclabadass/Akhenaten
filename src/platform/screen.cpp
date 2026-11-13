@@ -8,6 +8,7 @@
 #include "graphics/image.h"
 #include "graphics/screen.h"
 #include "graphics/view/view.h"
+#include "graphics/view/zoom.h"
 #include "game/game_config.h"
 #include "arguments.h"
 #include "platform/android/android.h"
@@ -270,6 +271,17 @@ int ios_screen_tracker_t::on_window_size(int width, int height) {
 
     const e_ios_screen prev = current;
     current = next;
+    if (prev == IOS_SCREEN_UNKNOWN || (prev == IOS_SCREEN_FOLDED) != (next == IOS_SCREEN_FOLDED)) {
+        if (prev != IOS_SCREEN_UNKNOWN) {
+            zoom_for(prev) = g_zoom.ftarget();
+        }
+        const float zoom = zoom_for(next);
+        if (game.session.active) {
+            g_zoom.set_scale(zoom);
+        } else {
+            g_zoom.zoom = g_zoom.target = zoom;
+        }
+    }
     if (prev == IOS_SCREEN_INNER_LANDSCAPE) {
         landscape_sidebar_collapsed = g_camera.sidebar_collapsed;
     }
@@ -455,6 +467,15 @@ vec2i platform_screen_t::get_max_resolution() {
     int index = SDL_GetWindowDisplayIndex(as_sdl_window(window));
     SDL_GetCurrentDisplayMode(index, &mode);
     return {scale_pixels_to_logical(mode.w), scale_pixels_to_logical(mode.h)};
+}
+
+float ios_screen_tracker_t::city_zoom_for_load() {
+    if (current == IOS_SCREEN_UNKNOWN) {
+        return 100.0f;
+    }
+    float& zoom = zoom_for(current);
+    zoom = g_zoom.ftarget();
+    return zoom;
 }
 
 static xstring __test_ios_screen_window(int width, int height) {

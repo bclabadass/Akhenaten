@@ -55,9 +55,18 @@ struct ios_screen_tracker_t {
     e_ios_screen current = IOS_SCREEN_UNKNOWN;
     bool tall = false;
     bool landscape_sidebar_collapsed = false;
+    // The city zoom kept for each screen. The inner screen draws the game at 67%, so it starts at 150%
+    // to show buildings at the folded screen's size.
+    float zoom_folded = 100.0f;
+    float zoom_inner = 150.0f;
 
-    // On a move between the screens or a turn of the inner one: sets the sidebar and the allowed
-    // orientations, and returns the display scale to switch to, or 0 to keep the current one.
+    float& zoom_for(e_ios_screen screen) { return screen == IOS_SCREEN_FOLDED ? zoom_folded : zoom_inner; }
+
+    // On a move between the screens or a turn of the inner one: sets the sidebar, the allowed
+    // orientations and the city zoom, and returns the display scale to switch to, or 0 to keep it.
     int on_window_size(int width, int height);
+
+    // The zoom a city starts at: 100% off the Duo, else the current screen's (keeping its latest pinch).
+    float city_zoom_for_load();
 };
 extern ios_screen_tracker_t g_ios_screen;

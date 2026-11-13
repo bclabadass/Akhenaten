@@ -20,6 +20,7 @@
 #include "widget/sidebar/common.h"
 #include "scenario/scenario.h"
 #include "platform/renderer.h"
+#include "platform/screen.h"
 #include "city/city.h"
 #include "game/game.h"
 #include "input/mouse.h"
@@ -430,7 +431,7 @@ void viewport_t::frame_begin() {
 
 void viewport_t::init() {
     screentile_lookup.calculate();
-    g_zoom.set_scale(100.0f);
+    g_zoom.set_scale(g_ios_screen.city_zoom_for_load());
     widget_minimap_invalidate();
 }
 
