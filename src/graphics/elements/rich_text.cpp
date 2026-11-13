@@ -29,16 +29,18 @@ int rich_text_t::init(pcstr text, vec2i ptext, int width_blocks, int height_bloc
         if (available_height_lines < 1) {
             available_height_lines = 1;  // At least one line
         }
-        
-        num_lines = draw(text, vec2i(x_text + 8 + margin.left, y_text + 6 + margin.top), available_width, available_height_lines, /*meaure_only*/true);
-        dscrollbar.pos.x = x_text + 16 * text_width_blocks - 1;
-        dscrollbar.pos.y = y_text;
+
+        num_lines = draw(text, vec2i(x_text + 8 + margin.left, y_text + 6 + margin.top), available_width,
+          available_height_lines, /*meaure_only*/ true);
         dscrollbar.height = 16 * text_height_blocks;
         dscrollbar.init(0, num_lines - text_height_lines);
         if (num_lines <= text_height_lines && adjust_width_on_no_scroll) {
             text_width_blocks += 2;
         }
     }
+    // Every call, not only when measuring: the box moves when its window is re-centred (a resize or a turn).
+    dscrollbar.pos.x = x_text + 16 * width_blocks - 1;
+    dscrollbar.pos.y = y_text;
 
     dscrollbar.onscroll([this] {
         clear_links();

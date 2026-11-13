@@ -6,6 +6,8 @@
 #include "figure/formation_batalion.h"
 #include "building/building_statue.h"
 #include "graphics/window.h"
+#include "graphics/elements/rich_text.h"
+#include "graphics/elements/ui.h"
 #include "platform/renderer.h"
 #include "building/building_fort.h"
 #include "building/building_barracks.h"
@@ -364,6 +366,21 @@ static vec2i __test_window_element_size(xstring section, xstring id) {
     return (w && w->contains(id)) ? (*w)[id].size : vec2i{-1, -1};
 }
 ANK_FUNCTION_2(__test_window_element_size);
+
+// "text_x,text_y,bar_x,bar_y,bar_height,max_scroll" for a rich text element, as last drawn; "" if it has none.
+static xstring __test_window_element_scrollbar(xstring section, xstring id) {
+    autoconfig_window* w = autoconfig_window::find(section);
+    ui::etext* t = (w && w->contains(id)) ? (*w)[id].dcast_etext() : nullptr;
+    if (!t || !t->rich_text) {
+        return xstring();
+    }
+    const rich_text_t& rt = *t->rich_text;
+    bstring128 out;
+    out.printf("%d,%d,%d,%d,%d,%d", rt.x_text, rt.y_text, rt.dscrollbar.pos.x, rt.dscrollbar.pos.y,
+      rt.dscrollbar.height, rt.dscrollbar.max_scroll_position);
+    return xstring(out.c_str());
+}
+ANK_FUNCTION_2(__test_window_element_scrollbar);
 
 static int __test_statue_image(int type, int orientation, int variant) {
     return building_statue::get_image((e_building_type)type, orientation, variant);
