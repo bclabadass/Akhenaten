@@ -1166,7 +1166,10 @@ if(APPLE)
         set_source_files_properties("${GAME_IOS_ASSETS}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
         set_target_properties(${GAME} PROPERTIES
             XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon"
-            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "${GAME_IOS_BUNDLE_ID}")
+            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "${GAME_IOS_BUNDLE_ID}"
+            # Archives (TestFlight) only take an app that installs into Applications.
+            XCODE_ATTRIBUTE_SKIP_INSTALL "NO"
+            XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)")
         if(GAME_IOS_DEVELOPMENT_TEAM)
             set_target_properties(${GAME} PROPERTIES
                 XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${GAME_IOS_DEVELOPMENT_TEAM}"
