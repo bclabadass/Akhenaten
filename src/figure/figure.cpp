@@ -946,8 +946,9 @@ void figure::draw_tooltip(tooltip_context *c) const {
     ui::end_widget();
 }
 
-void figure::bind(io_buffer* iob) {
+void figure::bind(io_buffer* iob, figure_original_fields* original) {
     figure* f = this;
+    figure_original_fields og;
     int tmpe;
     iob->bind(BIND_SIGNATURE_UINT8, &f->alternative_location_index);
     iob->bind(BIND_SIGNATURE_UINT8, &tmpe);
@@ -1026,8 +1027,8 @@ void figure::bind(io_buffer* iob) {
     iob->bind(BIND_SIGNATURE_UINT8, &f->wait_ticks_missile);
     iob->bind(BIND_SIGNATURE_INT8, &f->cart_offset.x);
     iob->bind(BIND_SIGNATURE_INT8, &f->cart_offset.y);
-    iob->bind____skip(1); // iob->bind(BIND_SIGNATURE_UINT8, &f->empire_city_id);
-    iob->bind____skip(1); // iob->bind(BIND_SIGNATURE_UINT8, &f->trader_amount_bought);
+    iob->bind(BIND_SIGNATURE_UINT8, &og.empire_city_id);
+    iob->bind(BIND_SIGNATURE_UINT8, &og.trader_amount_bought);
     iob->bind____skip(2); // iob->bind(BIND_SIGNATURE_UINT16, &f->name); // 6
     iob->bind(BIND_SIGNATURE_UINT8, &f->terrain_usage);
     iob->bind(BIND_SIGNATURE_UINT8, &f->allow_move_type);
@@ -1036,12 +1037,12 @@ void figure::bind(io_buffer* iob) {
     iob->bind(BIND_SIGNATURE_UINT8, &f->current_height);
     iob->bind(BIND_SIGNATURE_UINT8, &f->target_height);
     iob->bind(BIND_SIGNATURE_UINT8, &f->collecting_item_id);
-    iob->bind____skip(1); // iob->bind(BIND_SIGNATURE_UINT8, &f->trade_ship_failed_dock_attempts);
+    iob->bind(BIND_SIGNATURE_UINT8, &og.trade_ship_failed_dock_attempts);
     iob->bind____skip(1); // iob->bind(BIND_SIGNATURE_UINT8, &f->phrase_sequence_exact);
     iob->bind____skip(1); // iob->bind(BIND_SIGNATURE_UINT8, &f->phrase.id);
     iob->bind____skip(1); // iob->bind(BIND_SIGNATURE_UINT8, &f->phrase_sequence_city);
     iob->bind(BIND_SIGNATURE_INT8, &f->progress_inside);
-    iob->bind____skip(1);  // iob->bind(BIND_SIGNATURE_UINT8, &f->trader_id);
+    iob->bind(BIND_SIGNATURE_UINT8, &og.trader_id);
     iob->bind____skip(1);  // iob->bind(BIND_SIGNATURE_UINT8, &f->wait_ticks_next_target);
     iob->bind(BIND_SIGNATURE_INT16, &f->target_figure_id);
     iob->bind(BIND_SIGNATURE_INT16, &f->targeted_by_figure_id);
@@ -1075,6 +1076,10 @@ void figure::bind(io_buffer* iob) {
     f->cart_image_id += 18;
 
     iob->bind____skip(2);
+
+    if (original && iob->is_read_access()) {
+        *original = og;
+    }
 
     draw_mode = 0;
     // Runtime-only trail (persisted in recorded_paths building rings); clear stale ids on load.

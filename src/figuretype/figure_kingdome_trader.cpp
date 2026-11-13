@@ -128,6 +128,16 @@ void figure_trade_caravan::on_destroy() {
     empire_city().remove_trader(id());
 }
 
+void figure_trade_caravan::on_post_load_original(const figure_original_fields &og) {
+    auto &d = runtime_data();
+    d = {};
+    d.empire_city = empire_city_handle{original_trader_city(og)};
+    d.trader = empire_trader_handle{original_trader_id(og)};
+    // The original counts loads; this port counts units.
+    d.amount_bought = og.trader_amount_bought * UNITS_PER_LOAD;
+    d.capacity = current_params().max_capacity;
+}
+
 void figure_trade_caravan::figure_action() {
     int last_action_state = action_state();
     auto& d = runtime_data();

@@ -40,6 +40,7 @@ public:
 
     virtual void on_create() override;
     virtual void on_destroy() override;
+    virtual void on_post_load_original(const figure_original_fields &og) override;
     virtual void figure_action() override;
     virtual void before_poof() override;
     virtual void update_animation() override;

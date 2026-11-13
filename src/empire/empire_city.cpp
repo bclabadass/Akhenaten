@@ -252,7 +252,9 @@ bool empire_city_handle::sells_resource(e_resource r) const {
 }
 
 void empire_city_handle::remove_trader(figure_id fid) {
-    ref().remove_trader(fid);
+    if (empire_city *city = g_empire.city(handle)) {
+        city->remove_trader(fid);
+    }
 }
 
 void empire_city_handle::set_under_siege(uint8_t months) {

@@ -53,7 +53,8 @@ static ui::message_dialog_base* g_message_dialog_instance = nullptr;
 static constexpr pcstr MESSAGE_HELP_FALLBACK = "message_table_of_contents";
 
 void ANK_REGISTER_CONFIG_ITERATOR(config_load_message_dialog) {
-    if (g_message_dialog_instance) {
+    // Only an open dialog: message_id indexes the city's message list, which a later city load replaces.
+    if (g_message_dialog_instance && g_window_manager.window_is("window_message_dialog")) {
         g_message_dialog_instance->init_data(
             g_message_dialog_instance->debug_text_id,
             g_message_dialog_instance->message_id,

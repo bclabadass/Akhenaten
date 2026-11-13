@@ -26,6 +26,8 @@ public:
     virtual void on_create();
     virtual void on_destroy() {}
     virtual void on_post_load();
+    // After loading a save written by the original game: runtime_data holds the original's bytes, not this type's.
+    virtual void on_post_load_original(const figure_original_fields &og) {}
     virtual void on_change_terrain(int old, int current);
     virtual void on_attacked(figure *attacker);
     virtual void figure_action() {}

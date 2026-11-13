@@ -382,6 +382,27 @@ static xstring __test_window_element_scrollbar(xstring section, xstring id) {
 }
 ANK_FUNCTION_2(__test_window_element_scrollbar);
 
+// "traders,valid_city" over live trade caravans and trade ships; valid_city counts those whose city is in use.
+static xstring __test_trader_cities() {
+    int traders = 0;
+    int valid = 0;
+    for (int i = 1; i < MAX_FIGURES; i++) {
+        figure *f = figure_get(i);
+        if (!f->is_valid() || (f->type != FIGURE_TRADE_CARAVAN && f->type != FIGURE_TRADE_SHIP)) {
+            continue;
+        }
+        ++traders;
+        const empire_city *city = g_empire.city(f->dcast()->empire_city().handle);
+        if (city && city->in_use) {
+            ++valid;
+        }
+    }
+    bstring64 out;
+    out.printf("%d,%d", traders, valid);
+    return xstring(out.c_str());
+}
+ANK_FUNCTION(__test_trader_cities);
+
 static int __test_statue_image(int type, int orientation, int variant) {
     return building_statue::get_image((e_building_type)type, orientation, variant);
 }

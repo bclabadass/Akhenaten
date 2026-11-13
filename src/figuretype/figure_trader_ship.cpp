@@ -1,10 +1,12 @@
 #include "figure_trader_ship.h"
+#include "figure_trader.h"
 
 #include "figure/figure.h"
 #include "empire/trader_handler.h"
 #include "empire/empire_traders.h"
 #include "figure_shipwreck.h"
 #include "building/building_dock.h"
+#include "building/building_storage.h"
 #include "game/game.h"
 #include "game/game_config.h"
 #include "empire/empire.h"
@@ -256,6 +258,17 @@ void figure_trade_ship::on_create() {
     runtime_data().capacity = game_features::gameplay_change_trader_capacity_1600.to_bool()
         ? 1600
         : current_params().max_capacity;
+}
+
+void figure_trade_ship::on_post_load_original(const figure_original_fields &og) {
+    auto &d = runtime_data();
+    d = {};
+    d.empire_city = empire_city_handle{original_trader_city(og)};
+    d.trader = empire_trader_handle{original_trader_id(og)};
+    d.failed_dock_attempts = og.trade_ship_failed_dock_attempts;
+    // The original counts loads; this port counts units.
+    d.amount_bought = og.trader_amount_bought * UNITS_PER_LOAD;
+    d.capacity = current_params().max_capacity;
 }
 
 void figure_trade_ship::on_destroy() {

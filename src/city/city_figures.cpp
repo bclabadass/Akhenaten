@@ -4,6 +4,9 @@
 #include "city/city.h"
 #include "city/city_figures.h"
 #include "figure/figure_names.h"
+#include "io/gamestate/save_versions.h"
+
+#include <vector>
 #include "core/custom_span.hpp"
 #include "core/random.h"
 
@@ -62,15 +65,27 @@ int city_figures_t::total_invading_enemies() const {
     return kingdome_soldiers + enemies;
 }
 
+namespace {
+    size_t g_figures_loaded_version = 0;
+    std::vector<figure_original_fields> g_figures_original_fields;
+} // namespace
+
 void city_figures_t::on_post_load() {
+    const bool from_original = g_figures_loaded_version > 0 && g_figures_loaded_version <= last_original_save_version
+                               && g_figures_original_fields.size() == MAX_FIGURES;
     for (auto &figure: map_figures()) {
         if (figure->type == FIGURE_NONE) {
             continue;
         }
 
         figure->reset_flags();
+        if (from_original) {
+            figure->dcast()->on_post_load_original(g_figures_original_fields[figure->id]);
+        }
         figure->dcast()->on_post_load();
     }
+    g_figures_loaded_version = 0;
+    g_figures_original_fields.clear();
 }
 
 void city_figures_t::update() {
@@ -187,8 +202,13 @@ void figure_clear_all() {
 
 io_buffer *iob_figures = new io_buffer([] (io_buffer *iob, size_t version) {
     g_figure_data.init();
+    const bool reading = iob->is_read_access();
+    if (reading) {
+        g_figures_loaded_version = version;
+        g_figures_original_fields.assign(MAX_FIGURES, figure_original_fields{});
+    }
     for (int i = 0; i < MAX_FIGURES; i++) {
-        figure_get(i)->bind(iob); // doing this because some members are PRIVATE.
+        figure_get(i)->bind(iob, reading ? &g_figures_original_fields[i] : nullptr); // doing this because some members are PRIVATE.
         figure_get(i)->id = i;
     }
 });

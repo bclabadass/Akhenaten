@@ -20,6 +20,7 @@
 #include "graphics/animation.h"
 #include "sound/sound_walker.h"
 #include "figure/figure_static_params.h"
+#include "figure/figure_common.h"
 #include "figure/figure_impl.h"
 #include "figure/figure_classes.h"
 
@@ -290,7 +291,7 @@ public:
     bool has_cart() const;
 
     inline void set_state(e_figure_state s) { state = s; };
-    void bind(io_buffer* iob);
+    void bind(io_buffer* iob, figure_original_fields* original = nullptr);
 
     // figure/figure.c
     void figure_delete_UNSAFE();

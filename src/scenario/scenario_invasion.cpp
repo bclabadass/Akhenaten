@@ -1186,5 +1186,14 @@ io_buffer *iob_invasion_runtime = new io_buffer([] (io_buffer *iob, size_t versi
 });
 
 const enemy_properties_t &invasion_data_t::get_prop(e_enemy_type type) {
+    // Messages store "no faction" as -1 (original saves too); an empty army title rather than a read past the table.
+    static const enemy_properties_t none = [] {
+        enemy_properties_t p{};
+        p.army_title = "";
+        return p;
+    }();
+    if ((int)type < 0 || (int)type >= ENEMY_COUNT || !g_enemy_properties[type]) {
+        return none;
+    }
     return *g_enemy_properties[type];
 }
