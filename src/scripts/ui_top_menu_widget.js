@@ -224,6 +224,8 @@ function top_menu_calc_menu_size(menu) {
 // The iPhone Duo's inner screen (screen_inner_unfolded): pop-up windows and the title screen are drawn this much larger.
 inner_screen {
 	popup_scale : 1.5
+	// The collapsed control panel, in both orientations; the expanded panel keeps the canvas scale.
+	collapsed_sidebar_scale : 2
 	// Fixed-size pop-ups too wide for the portrait screen at popup_scale, with their widths: drawn just small enough to fit.
 	portrait_fit {
 		trade_prices_window { width : 896 }

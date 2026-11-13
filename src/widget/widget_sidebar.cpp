@@ -184,7 +184,10 @@ void ui::sidebar_window_collapsed_t::init() {
 }
 
 void ui::sidebar_window_collapsed_t::ui_draw_foreground(UiFlags flags) {
-    x_offset = screen_width();
+    const float scale = window_ui_scale_current();
+    // The edge strip (extra_block) stays at the canvas scale, so the scaled panel ends where it begins.
+    const int strip = -extra_block_x;
+    x_offset = screen_width() + strip - (int)(strip / scale);
     slider.update(x_offset, expanded_offset_x, [this] {
         if (slider.slide_mode == slider.e_slide_collapse) {
             g_camera.toggle_sidebar(false);
@@ -193,7 +196,7 @@ void ui::sidebar_window_collapsed_t::ui_draw_foreground(UiFlags flags) {
     });
 
     ui.pos.x = x_offset;
-    ui.pos.y = top_menu_height() - TOP_MENU_HEIGHT;
+    ui.pos.y = (int)(top_menu_height() / scale) - TOP_MENU_HEIGHT;
 
     {
         OZZY_PROFILER_SECTION(_, "sidebar_window_draw")
@@ -209,7 +212,7 @@ void ui::sidebar_window_collapsed_t::ui_draw_foreground(UiFlags flags) {
     ui.draw(wflags);
     ui.end_widget();
 
-    int relief_y_offset = SIDEBAR_MAIN_SECTION_HEIGHT + top_menu_height();
+    int relief_y_offset = SIDEBAR_MAIN_SECTION_HEIGHT + (int)(top_menu_height() / scale);
     sidebar_common_draw_relief({ x_offset, relief_y_offset }, relief_block);
 }
 
@@ -219,19 +222,19 @@ void widget_sidebar_city_init() {
 }
 
 int widget_sidebar_city_offset_x() {
-    return g_camera.sidebar_collapsed
-             ? sidebar_window_collapsed.pos.x
-             : sidebar_window_expanded.pos.x;
+    return g_camera.sidebar_collapsed ? (int)(sidebar_window_collapsed.pos.x * screen_collapsed_sidebar_scale())
+                                      : sidebar_window_expanded.pos.x;
 }
 
 int widget_sidebar_city_offset_max() {
-    return (g_camera.sidebar_collapsed)
-             ? sidebar_window_collapsed.expanded_offset_x
-             : sidebar_window_expanded.expanded_offset_x;
+    return (g_camera.sidebar_collapsed) ? widget_sidebar_city_collapsed_max()
+                                        : sidebar_window_expanded.expanded_offset_x;
 }
 
 int widget_sidebar_city_collapsed_max() {
-    return sidebar_window_collapsed.expanded_offset_x;
+    const auto& c = sidebar_window_collapsed;
+    const int strip = -c.extra_block_x;
+    return (int)((c.expanded_offset_x - strip) * screen_collapsed_sidebar_scale()) + strip;
 }
 
 int widget_sidebar_city_expanded_max() {
@@ -268,6 +271,8 @@ void widget_sidebar_city_draw_foreground() {
     if (collapsed) {
         const auto& eb = sidebar_window_collapsed;
         draw_sidebar_extra_blocks(eb.extra_block, sw + eb.extra_block_x, eb.extra_block_size);
+        // Drawn in the panel's own coordinates (pos, expanded_offset_x); the city's width uses the scaled ones.
+        window_ui_scale_scope scaled(screen_collapsed_sidebar_scale());
         sidebar_window_collapsed.ui_draw_foreground(UiFlags_None);
     } else {
         sidebar_window_expanded.ui_draw_foreground(UiFlags_None);
@@ -290,6 +295,7 @@ int widget_sidebar_city_handle_mouse(const mouse* m) {
     }
 
     if (g_camera.sidebar_collapsed) {
+        window_ui_scale_scope scaled(screen_collapsed_sidebar_scale());
         sidebar_window_collapsed.ui_handle_mouse(m);
     } else {
         sidebar_window_expanded.ui_handle_mouse(m);
@@ -305,6 +311,7 @@ int widget_sidebar_city_handle_mouse(const mouse* m) {
 
 int widget_sidebar_city_handle_mouse_build_menu(const mouse* m) {
     if (g_camera.sidebar_collapsed) {
+        window_ui_scale_scope scaled(screen_collapsed_sidebar_scale());
         return sidebar_window_collapsed.ui_handle_mouse(m);
     } else {
         return sidebar_window_expanded.ui_handle_mouse(m);

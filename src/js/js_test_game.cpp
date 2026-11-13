@@ -2401,6 +2401,11 @@ static int __test_viewport_y() {
 }
 ANK_FUNCTION(__test_viewport_y);
 
+static int __test_viewport_width() {
+    return g_camera.size_pixels.x;
+}
+ANK_FUNCTION(__test_viewport_width);
+
 static int __test_house_population(int bid) {
     building *b = building_get(bid);
     auto *house = (b && b->is_valid()) ? b->dcast_house() : nullptr;

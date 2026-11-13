@@ -36,6 +36,7 @@ namespace {
     };
     top_menu_sizes_t g_top_menu_sizes;
     float g_popup_scale = 1.0f;
+    float g_collapsed_sidebar_scale = 1.0f;
     std::unordered_map<xstring, int> g_portrait_fit_widths;
     bool g_pretend_ios = false;
 } // namespace
@@ -48,6 +49,7 @@ void ANK_REGISTER_CONFIG_ITERATOR(config_load_top_menu_sizes) {
     });
     g_config_arch.r_section("inner_screen", [](archive arch) {
         g_popup_scale = arch.r_float("popup_scale", 1.0f);
+        g_collapsed_sidebar_scale = arch.r_float("collapsed_sidebar_scale", 1.0f);
         g_portrait_fit_widths.clear();
         arch.r_objects("portrait_fit",
           [](pcstr id, archive window) { g_portrait_fit_widths[xstring(id)] = window.r_int("width"); });
@@ -82,6 +84,10 @@ int top_menu_height() {
 
 float screen_popup_scale() {
     return screen_inner_unfolded() ? g_popup_scale : 1.0f;
+}
+
+float screen_collapsed_sidebar_scale() {
+    return screen_inner_unfolded() ? g_collapsed_sidebar_scale : 1.0f;
 }
 
 void screen_set_virtual_scale(float s) {

@@ -32,6 +32,7 @@ void screen_pretend_ios(bool on);
 bool screen_is_ios();
 // How much larger pop-up windows and the title screen are drawn: inner_screen.popup_scale on the inner screen, else 1.
 float screen_popup_scale();
+float screen_collapsed_sidebar_scale();
 // A window scaled by s lays itself out on a screen s times smaller; 1 restores the canvas size.
 void screen_set_virtual_scale(float s);
 
