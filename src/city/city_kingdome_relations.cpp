@@ -304,7 +304,7 @@ void kingdome_relation_t::advance_year() {
 
     const bool can_update_rating = !game_features::gameplay_save_year_kingdome_rating;
     if (can_update_rating && g_scenario.is_before_mission(3)) {
-        rating -= 2;
+        change(-2);
     }
 
     // tribute penalty
@@ -320,14 +320,14 @@ void kingdome_relation_t::advance_year() {
     if (g_city.kingdome.player_rank != 0) {
         if (salary_delta > 0) {
             // salary too high
-            rating -= salary_delta;
+            change(-salary_delta);
             kingdom_salary_penalty = salary_delta + params().player_salary_above_king_penalty;
         } else if (salary_delta < 0) {
             // salary lower than rank
-            rating += params().player_salary_less_king_promotion;
+            change(params().player_salary_less_king_promotion);
         }
     } else if (salary_delta > 0) {
-        rating -= salary_delta;
+        change(-salary_delta);
         kingdom_salary_penalty = salary_delta;
     }
 
@@ -361,9 +361,9 @@ void kingdome_relation_t::advance_year() {
         }
 
         if (bonus) {
-            rating += 5;
+            change(5);
         } else {
-            rating -= 2;
+            change(-2);
             kingdom_milestone_penalty = 2;
         }
     }
