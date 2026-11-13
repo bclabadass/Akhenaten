@@ -38,7 +38,7 @@ building_lamp_workshop {
     resource : RESOURCE_LAMPS
   }
   progress_max : 400
-  production_rate : 20
+  production_rate : 100
   production_rate_dcy : [100, 80, 70, 60, 50]
   labor_category : LABOR_CATEGORY_INDUSTRY_COMMERCE
   building_size : 2

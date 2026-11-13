@@ -28,7 +28,7 @@ building_brewery {
   water_amount_for_production : 50
   max_water_storage : 100
   progress_max : 400,
-  production_rate : 50,
+  production_rate : 100,
   production_rate_dcy : [100, 80, 70, 60, 50],
   meta { text_id:122, help_link:"message_building_brewery" }
   info_sound : "Wavs/brewery.wav"

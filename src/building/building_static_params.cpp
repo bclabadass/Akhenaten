@@ -25,6 +25,8 @@ void building_static_params::initialize() {
             name ? name : "?", (int)type);
     }
     if (production_rate == 0) production_rate = 100;
+    if (input_second_amount == 0)
+        input_second_amount = 100;
     if (min_houses_coverage == 0) min_houses_coverage = 100;
     if (flags.need_nearby_houses_for_work && nearby_houses_radius == 0) {
         nearby_houses_radius = 6;

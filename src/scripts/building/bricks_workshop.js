@@ -37,12 +37,15 @@ building_bricks_workshop = {
     resource_second : RESOURCE_STRAW
   }
 
+  // OG: 100 clay + 25 straw make 100 bricks.
+  input_second_amount : 25
+
   output : {
     resource : RESOURCE_BRICKS
   }
 
   progress_max : 400
-  production_rate : 20
+  production_rate : 100
   production_rate_dcy : [100, 80, 70, 60, 50]
   labor_category : LABOR_CATEGORY_INDUSTRY_COMMERCE
   building_size : 2

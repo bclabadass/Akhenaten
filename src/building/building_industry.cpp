@@ -156,8 +156,9 @@ int building_industry::stored_amount(e_resource r) const {
 
 void building_industry::start_production() {
     bool can_start_b = true;
+    const int second_amount = current_params().input_second_amount;
     if (base.input.resource_second != RESOURCE_NONE) {
-        can_start_b = (stored_amount(base.input.resource_second) >= 100);
+        can_start_b = (stored_amount(base.input.resource_second) >= second_amount);
     }
 
     bool can_start_a = true;
@@ -168,8 +169,8 @@ void building_industry::start_production() {
     if (can_start_b && can_start_a) {
         base.progress = 1;
 
-        if (stored_amount(base.input.resource_second) >= 100) {
-            consume_resource(base.input.resource_second, 100);
+        if (stored_amount(base.input.resource_second) >= second_amount) {
+            consume_resource(base.input.resource_second, second_amount);
         }
 
         if (stored_amount(base.input.resource) >= 100) {
