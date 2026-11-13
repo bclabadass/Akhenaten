@@ -55,11 +55,11 @@ struct ios_screen_tracker_t {
     e_ios_screen current = IOS_SCREEN_UNKNOWN;
     bool tall = false;
     bool landscape_sidebar_collapsed = false;
-    // The city zoom kept for each screen. The inner screen draws the game at 67%: 150% shows buildings
-    // at the folded screen's size, which still looked far out; 200% shows them a third larger, with each
-    // art pixel close to 4 screen pixels.
+    // The city zoom kept for each screen; a lower zoom shows less of the map, so buildings are larger.
+    // The inner screen draws the game at 67%, so 67% would show buildings at the folded screen's size;
+    // 50% shows them a third larger, with each art pixel 4 screen pixels.
     float zoom_folded = 100.0f;
-    float zoom_inner = 200.0f;
+    float zoom_inner = 50.0f;
 
     float& zoom_for(e_ios_screen screen) { return screen == IOS_SCREEN_FOLDED ? zoom_folded : zoom_inner; }
 

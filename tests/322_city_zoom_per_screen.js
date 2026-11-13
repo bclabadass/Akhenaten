@@ -1,7 +1,7 @@
 // The iPhone Duo's inner screen draws the game at 67%, so at the same city zoom buildings looked a third
 // smaller than on the folded screen. Each screen now keeps its own city zoom: the inner screen starts at
-// 200% (buildings a third larger than folded), a pinch is kept for that screen across folding, turning
-// and loading a city, and off the Duo a city still starts at 100%.
+// 50% (a lower zoom shows less map: buildings a third larger than folded), a pinch is kept for that screen
+// across folding, turning and loading a city, and off the Duo a city still starts at 100%.
 // Markers:
 //   [test-marker] desktop_city_at_100
 //   [test-marker] unfold_zooms_in
@@ -45,7 +45,7 @@ function run_test() {
     if (desktop == 100 && folded == 100) {
         __log_marker('desktop_city_at_100')
     }
-    if (unfolded == 200) {
+    if (unfolded == 50) {
         __log_marker('unfold_zooms_in')
     }
     if (folded_again == 100) {
