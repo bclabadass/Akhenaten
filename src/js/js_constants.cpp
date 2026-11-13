@@ -21,6 +21,7 @@
 #include "city/constants.h"
 #include "city/city_kingdome_relations.h"
 #include "sound/sound_city.h"
+#include "sound/effect.h"
 #include "game/gods.h"
 #include "figuretype/figure_physician.h"
 #include "figuretype/figure_water_carrier.h"
@@ -58,6 +59,13 @@ void js_register_game_constants(js_State* J) {
 
     // repeated for alias id
     _R(SOUND_CHANNEL_CITY_HOUSE_SLUM)
+
+    _R(SOUND_EFFECT_PANEL)
+    _R(SOUND_EFFECT_SIDEBAR)
+    _R(SOUND_EFFECT_ICON)
+    _R(SOUND_EFFECT_BUILD)
+    _R(SOUND_EFFECT_FANFARE)
+    _R(SOUND_EFFECT_FANFARE_URGENT)
 
     // cause it vacant lot id also
     _R(BUILDING_HOUSE_VACANT_LOT)

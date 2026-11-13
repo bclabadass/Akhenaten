@@ -35,6 +35,7 @@ public:
     void init();
     void shutdown();
     void init_channels();
+    bool is_initialized() const { return initialized; }
     void begin_frame();
     inline xspan<channel_t> channels() { return make_span<channel_t>(_channels.data(), _channels.size()); }
     bool speech_play_file(xstring filename, int volume);

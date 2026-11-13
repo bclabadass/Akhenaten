@@ -57,3 +57,13 @@ city_sounds = [
   {c: SOUND_CHANNEL_CITY_COWFARM,       p: "Wavs/cowfarm_r.wav"},
   {c: SOUND_CHANNEL_CITY_LETTUCE_FARM,  p: "Wavs/lettucefarm.wav"},
 ]
+
+// Interface effects, played by g_sound.play_effect: the channel number is the effect id.
+sound_effects = [
+  {c: SOUND_EFFECT_PANEL,           p: "Wavs/BUTTON.WAV"},
+  {c: SOUND_EFFECT_SIDEBAR,         p: "Wavs/BUTTON.WAV"},
+  {c: SOUND_EFFECT_ICON,            p: "Wavs/BUTTON.WAV"},
+  {c: SOUND_EFFECT_BUILD,           p: "Wavs/BUILD.WAV"},
+  {c: SOUND_EFFECT_FANFARE,         p: "Wavs/FANFARE1.WAV"},
+  {c: SOUND_EFFECT_FANFARE_URGENT,  p: "Wavs/FANFARE2.WAV"},
+]

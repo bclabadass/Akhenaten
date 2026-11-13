@@ -349,6 +349,24 @@ static vec2i __test_window_pos(xstring section) {
 }
 ANK_FUNCTION_1(__test_window_pos);
 
+static bool __test_sound_ready() {
+    return g_sound.is_initialized();
+}
+ANK_FUNCTION(__test_sound_ready);
+
+// Channel file names are empty under --nosound or --no-resource; a channel loads its file on first play.
+static xstring __test_sound_channel_file(int channel) {
+    auto channels = g_sound.channels();
+    return (channel >= 0 && channel < (int)channels.size()) ? xstring(channels[channel].filename.c_str()) : xstring();
+}
+ANK_FUNCTION_1(__test_sound_channel_file);
+
+static bool __test_sound_channel_loaded(int channel) {
+    auto channels = g_sound.channels();
+    return channel >= 0 && channel < (int)channels.size() && channels[channel].chunk != nullptr;
+}
+ANK_FUNCTION_1(__test_sound_channel_loaded);
+
 static vec2i __test_window_element_pos(xstring section, xstring id) {
     autoconfig_window* w = autoconfig_window::find(section);
     return (w && w->contains(id)) ? (*w)[id].pos : vec2i{-1, -1};

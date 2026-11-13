@@ -46,11 +46,13 @@ static struct {
 #endif
 
 void ANK_REGISTER_CONFIG_ITERATOR(config_load_city_sounds) {
-    g_config_arch.r_array("city_sounds", [] (archive arch) {
-        const int channel = arch.r_int("c");
-        xstring path = arch.r_string("p");
-        g_sound.update_channel(channel, path.c_str());
-    });
+    for (pcstr table : {"city_sounds", "sound_effects"}) {
+        g_config_arch.r_array(table, [](archive arch) {
+            const int channel = arch.r_int("c");
+            xstring path = arch.r_string("p");
+            g_sound.update_channel(channel, path.c_str());
+        });
+    }
 }
 
 struct music_player_t {
