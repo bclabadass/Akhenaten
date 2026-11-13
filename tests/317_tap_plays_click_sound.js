@@ -1,6 +1,7 @@
-// Buttons click when pressed. The interface sounds (click, build, message fanfares) lost their
-// files when the city sounds moved to a config table, so play_effect found nothing to play, with a
-// mouse or a tap. A tap on an overseer button must load and play the click (Wavs/BUTTON.WAV).
+// Buttons click when pressed. The sound effects (click, build, fanfares, battle and death cries)
+// lost their files when the city sounds moved to a config table, so play_effect found nothing to
+// play, with a mouse or a tap. Every effect in sound_effects (city/sounds.js) must find its file,
+// and a tap on an overseer button must load and play the click (Wavs/BUTTON.WAV).
 // Needs the Pharaoh data and a working audio device; without them (--nosound, --no-resource, or no
 // device: SDL_AUDIODRIVER=dummy stands in for one) the test reports itself skipped.
 // Markers:
@@ -26,17 +27,18 @@ function run_test() {
         return
     }
 
-    var effects = [SOUND_EFFECT_PANEL, SOUND_EFFECT_SIDEBAR, SOUND_EFFECT_ICON, SOUND_EFFECT_BUILD,
-                   SOUND_EFFECT_FANFARE, SOUND_EFFECT_FANFARE_URGENT]
+    // Every effect in the table must find its file in the Pharaoh data (a missing one is left empty).
     var registered = 0
-    for (var i = 0; i < effects.length; i++) {
-        var file = __test_sound_channel_file(effects[i])
-        __log_info_native('[test:317] effect ' + effects[i] + ' -> ' + file)
+    for (var i = 0; i < sound_effects.length; i++) {
+        var file = __test_sound_channel_file(sound_effects[i].c)
         if (file != '') {
             registered++
+        } else {
+            __log_info_native('[test:317] effect ' + sound_effects[i].c + ' has no file: ' + sound_effects[i].p)
         }
     }
-    if (registered == effects.length) {
+    __log_info_native('[test:317] effects with files ' + registered + ' of ' + sound_effects.length)
+    if (registered == sound_effects.length) {
         __log_marker('interface_sounds_registered')
     }
 

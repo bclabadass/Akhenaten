@@ -58,7 +58,9 @@ city_sounds = [
   {c: SOUND_CHANNEL_CITY_LETTUCE_FARM,  p: "Wavs/lettucefarm.wav"},
 ]
 
-// Interface effects, played by g_sound.play_effect: the channel number is the effect id.
+// Effects played by g_sound.play_effect: the channel number is the effect id. The files follow
+// Pharaoh.exe's own sound table; effects it has no file for (camel, elephant, axe, ballista,
+// marching, bird death...) stay silent.
 sound_effects = [
   {c: SOUND_EFFECT_PANEL,           p: "Wavs/BUTTON.WAV"},
   {c: SOUND_EFFECT_SIDEBAR,         p: "Wavs/BUTTON.WAV"},
@@ -66,4 +68,25 @@ sound_effects = [
   {c: SOUND_EFFECT_BUILD,           p: "Wavs/BUILD.WAV"},
   {c: SOUND_EFFECT_FANFARE,         p: "Wavs/FANFARE1.WAV"},
   {c: SOUND_EFFECT_FANFARE_URGENT,  p: "Wavs/FANFARE2.WAV"},
+  {c: SOUND_EFFECT_EXPLOSION,       p: "Wavs/CRASH.WAV"},
+  {c: SOUND_EFFECT_FIRE_SPLASH,     p: "Wavs/SPLASH.WAV"},
+  {c: SOUND_EFFECT_ARROW,           p: "Wavs/ARCH_ATK.WAV"},
+  {c: SOUND_EFFECT_JAVELIN,         p: "Wavs/ship_arrow.wav"},
+  {c: SOUND_EFFECT_SWORD,           p: "Wavs/sword_atk.wav"},
+  {c: SOUND_EFFECT_SWORD_SWING,     p: "Wavs/sword_atk.wav"},
+  {c: SOUND_EFFECT_LIGHT_SWORD,     p: "Wavs/sword_atk.wav"},
+  {c: SOUND_EFFECT_SPEAR,           p: "Wavs/spear_atk.wav"},
+  {c: SOUND_EFFECT_HORSE,           p: "Wavs/chariot_atk.wav"},
+  {c: SOUND_EFFECT_HORSE2,          p: "Wavs/chariot_die.wav"},
+  {c: SOUND_EFFECT_ZEBRA_DIE,       p: "Wavs/antelopdie.wav"},
+  {c: SOUND_EFFECT_OSTRICH_DIE,     p: "Wavs/ostrichdie.wav"},
+  // Pharaoh has eight death cries; which figures used which is not known, so soldiers get 1-4.
+  {c: SOUND_EFFECT_SOLDIER_DIE,     p: "Wavs/DIE1.WAV"},
+  {c: SOUND_EFFECT_SOLDIER_DIE + 1, p: "Wavs/DIE2.WAV"},
+  {c: SOUND_EFFECT_SOLDIER_DIE + 2, p: "Wavs/DIE3.WAV"},
+  {c: SOUND_EFFECT_SOLDIER_DIE + 3, p: "Wavs/DIE4.WAV"},
+  {c: SOUND_EFFECT_CITIZEN_DIE,     p: "Wavs/DIE5.WAV"},
+  {c: SOUND_EFFECT_CITIZEN_DIE + 1, p: "Wavs/DIE6.WAV"},
+  {c: SOUND_EFFECT_CITIZEN_DIE + 2, p: "Wavs/DIE7.WAV"},
+  {c: SOUND_EFFECT_CITIZEN_DIE + 3, p: "Wavs/DIE8.WAV"},
 ]
