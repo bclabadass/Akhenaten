@@ -1335,6 +1335,26 @@ void screen_city_t::handle_first_touch(tile2i tile) {
         size = 3;
     }
 
+    // A moving finger carries the ghost, keeping where it took hold of it, and leaves it where it lifts.
+    // A touch is reported as started only once it moves, so take hold where the finger landed.
+    if (first->has_started) {
+        const vec2i landed_screen = g_camera.contains_pixel(first->start_point)
+                                      ? g_camera.pixel_to_screentile(first->start_point)
+                                      : vec2i{-1, -1};
+        const tile2i landed
+          = landed_screen.x != -1 && landed_screen.y != -1 ? g_camera.screen_to_tile(landed_screen) : tile2i::invalid;
+        ghost_grab = has_confirmed_construction(selected_tile, landed, size)
+                       ? vec2i{selected_tile.x() - landed.x(), selected_tile.y() - landed.y()}
+                       : vec2i{0, 0};
+    }
+    if (touch_not_click(first) && tile.valid()) {
+        const tile2i carried = tile.shifted(ghost_grab.x, ghost_grab.y);
+        selected_tile = carried.valid() ? carried : tile;
+        if (first->has_ended) {
+            return;
+        }
+    }
+
     if (touch_was_click(first) && first->has_ended && capture_input
         && has_confirmed_construction(selected_tile, tile, size)) {
         g_city_planner.update_hover(selected_tile);
@@ -1413,7 +1433,8 @@ void screen_city_t::handle_touch() {
     }
 
     if (g_city_planner.build_type && !g_city_planner.in_progress) {
-        g_city_planner.update_hover(current_tile);
+        // Same tile as the preview: a picked non-draggable ghost stays put, or is carried by the finger.
+        g_city_planner.update_hover(city_planner_cursor_tile_from_mouse());
     }
 
     if (first->has_started && input_coords_in_city(first->current_point.x, first->current_point.y)) {

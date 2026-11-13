@@ -16,6 +16,8 @@ using screen_space_effect_cb = void(painter &ctx);
 struct screen_city_t {
     tile2i current_tile;
     tile2i selected_tile;
+    // Touch: where a finger took hold of a non-draggable ghost, from the finger's tile to the ghost's.
+    vec2i ghost_grab;
     color force_mask;
     int new_start_grid_offset;
     bool capture_input;
