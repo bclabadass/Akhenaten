@@ -819,7 +819,9 @@ int monument_pyramid_figure::claim_next_part(figure_id fid, int set_height, int 
     const int ref_x = ref->tile.x();
     const int ref_y = ref->tile.y();
 
-    const e_pyramid_style style = g_monument_pyramid_engine.style_of(head);
+    // style_of() reads the pyramid table, where a mastaba has no entry (NONE): every part would be skipped.
+    const e_pyramid_style style
+      = mastaba_engine_is(head) ? PYRAMID_STYLE_MASTABA : g_monument_pyramid_engine.style_of(head);
     building_id best_id = 0;
     int best_distance = 0;
     int best_pair_waiting = 0;
