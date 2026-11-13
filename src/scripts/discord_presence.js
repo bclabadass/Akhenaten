@@ -14,7 +14,7 @@ function discord_presence_city_details(ev) {
         sid = scenario.campaign_scenario_id
     }
     if (sid >= 0) {
-        var loc = __lang_message_title_text(200 + sid)
+        var loc = __lang_message_title_text(mission_text_id(sid))
         if (loc && loc.length > 0) {
             return loc
         }

@@ -178,7 +178,7 @@ function mission_briefing_window_on_toggle_ironwill(window) {
 function mission_briefing_window_on_init(window) {
     var scenario_id = game.mission_briefing_scenario_id
     var is_review = game.mission_briefing_is_review
-    var text_id = 200 + scenario_id
+    var text_id = mission_text_id(scenario_id)
 
     window.splash.image = mission_briefing_splash_tid()
 

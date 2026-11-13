@@ -4,11 +4,26 @@ function scenario_win_criteria_goal(c) {
     return c.enabled ? c.goal : 0
 }
 
+var FIRST_CLEOPATRA_MISSION = 38
+
+// The message holding a mission's name, subtitle and briefing. Pharaoh's are 200 + id; Cleopatra's sit at the
+// mission's start_message (447 on), and 200 + id there is tutorial text.
+function mission_text_id(scenario_id) {
+    if (scenario_id >= FIRST_CLEOPATRA_MISSION) {
+        var config = get_mission_config(scenario_id)
+        var uid = (config && config.start_message) ? __lang_get_message_uid(config.start_message) : 0
+        if (uid > 0) {
+            return uid
+        }
+    }
+    return 200 + scenario_id
+}
+
 function mission_selection_title(scenario_id) {
     if (scenario_id === undefined || scenario_id === null || scenario_id < 0) {
         return "No title"
     }
-    var orig = __lang_message_title_text(200 + scenario_id)
+    var orig = __lang_message_title_text(mission_text_id(scenario_id))
     if (orig && orig.length > 0) {
         return orig
     }
