@@ -1169,7 +1169,8 @@ if(APPLE)
             XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "${GAME_IOS_BUNDLE_ID}"
             # Archives (TestFlight) only take an app that installs into Applications.
             XCODE_ATTRIBUTE_SKIP_INSTALL "NO"
-            XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)")
+            XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
+            XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
         if(GAME_IOS_DEVELOPMENT_TEAM)
             set_target_properties(${GAME} PROPERTIES
                 XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${GAME_IOS_DEVELOPMENT_TEAM}"
