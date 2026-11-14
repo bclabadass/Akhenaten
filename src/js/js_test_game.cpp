@@ -3840,6 +3840,17 @@ static vec2i __test_company_orders_button_pos() {
 }
 ANK_FUNCTION(__test_company_orders_button_pos);
 
+// Top edges of the touch buttons by the city view's right edge, to compare with the top menu bar.
+static int __test_company_orders_button_top() {
+    return window_city_company_orders_button_top();
+}
+ANK_FUNCTION(__test_company_orders_button_top);
+
+static int __test_construction_rotate_button_top() {
+    return window_city_construction_rotate_button_top();
+}
+ANK_FUNCTION(__test_construction_rotate_button_top);
+
 pcstr __test_info_ui_text(pcstr element_id) {
     static bstring512 buf;
     buf = "";

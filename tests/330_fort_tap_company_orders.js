@@ -2,13 +2,16 @@
 // touch screen has no right-click, and a tap on a fort or its flag only selected the company to move, so
 // on a phone the formations could not be reached. A tap on the fort itself now opens the orders; a tap on
 // the parade ground still selects the company to move, and while it is selected an Orders button (where
-// the rotate button sits when placing) opens them too. A mouse click on the fort is unchanged.
+// the rotate button sits when placing) opens them too. A mouse click on the fort is unchanged. The Orders
+// and Rotate buttons sit below the top menu bar, which is taller on the unfolded inner screen.
 // Markers:
 //   [test-marker] fort_tap_opens_orders
 //   [test-marker] orders_formation_tap_changes_layout
 //   [test-marker] ground_tap_selects_company
 //   [test-marker] orders_button_opens_orders
 //   [test-marker] mouse_click_on_fort_selects_company
+//   [test-marker] buttons_below_bar
+//   [test-marker] inner_buttons_below_bar
 
 var T330_MOP_UP = 6
 
@@ -55,8 +58,39 @@ function t330_place(type) {
     return bid
 }
 
+function t330_buttons_below_bar(label) {
+    var bar = __top_menu_height()
+    var orders = __test_company_orders_button_top()
+    var rotate = __test_construction_rotate_button_top()
+    __log_info_native('[test:330] ' + label + ': bar ' + bar + ', orders top ' + orders + ', rotate top ' + rotate
+        + ', unfolded ' + __screen_inner_unfolded())
+    return orders >= bar + 4 && rotate >= bar + 4
+}
+
+function t330_check_button_layout() {
+    var saved_scale = __display_options_get_scale()
+    __display_options_set_scale(100)
+    __test_pretend_ios(false)
+    __test_pump_frames(3)
+    if (t330_buttons_below_bar('desktop')) {
+        __log_marker('buttons_below_bar')
+    }
+
+    __display_options_set_scale(67)
+    __test_pretend_ios(true)
+    __test_pump_frames(3)
+    if (__screen_inner_unfolded() && __top_menu_height() > 30 && t330_buttons_below_bar('inner')) {
+        __log_marker('inner_buttons_below_bar')
+    }
+
+    __test_pretend_ios(false)
+    __display_options_set_scale(saved_scale)
+    __test_pump_frames(3)
+}
+
 function run_test() {
     test_reload_city_session('data/default.map')
+    t330_check_button_layout()
     __test_set_treasury(100000)
     __scenario_building_allow(BUILDING_FORT_GROUND, true)
     var fort = t330_place(BUILDING_FORT_ARCHERS)
@@ -144,7 +178,7 @@ function run_test() {
 
 function check_valid() {
     var markers = ['fort_tap_opens_orders', 'orders_formation_tap_changes_layout', 'ground_tap_selects_company',
-        'orders_button_opens_orders', 'mouse_click_on_fort_selects_company']
+        'orders_button_opens_orders', 'mouse_click_on_fort_selects_company', 'buttons_below_bar', 'inner_buttons_below_bar']
     for (var i = 0; i < markers.length; i++) {
         if (!__test_find_inlog('[test-marker] ' + markers[i])) {
             return false

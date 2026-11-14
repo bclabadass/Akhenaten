@@ -30,6 +30,8 @@ bool is_in_construction_buttons_region(vec2i pt);
 void window_city_draw_company_orders_button();
 bool window_city_handle_company_orders_button(const mouse* m, int formation_id);
 vec2i window_city_company_orders_button_center();
+int window_city_company_orders_button_top();
+int window_city_construction_rotate_button_top();
 
 void window_city_draw_all();
 void window_city_draw_panels();

@@ -14,6 +14,7 @@
 #include "graphics/elements/lang_text.h"
 #include "graphics/elements/panel.h"
 #include "graphics/image.h"
+#include "graphics/screen.h"
 #include "graphics/text.h"
 #include "graphics/window.h"
 #include "graphics/view/lookup.h"
@@ -87,8 +88,9 @@ static bool construction_buttons_visible() {
     return construction_buttons_count() > 0 || construction_rotate_visible();
 }
 
+// The top menu bar is taller on the unfolded inner screen; the buttons keep the same gap below it.
 static vec2i construction_buttons_base_pos() {
-    return {g_camera.size_pixels.x - 4 * 16, 44};
+    return {g_camera.size_pixels.x - 4 * 16, top_menu_height() + 14};
 }
 
 // Slots used by the icon buttons. Two-finger tap already cancels, so outside Android (which has
@@ -145,9 +147,9 @@ bool is_in_construction_buttons_region(vec2i pt) {
     const int count = construction_buttons_count();
     const int x0 = base.x - 32;
     const int x1 = base.x + 60;
-    const int y0 = 20;
+    const int y0 = base.y - 24;
     const int slots = count + (construction_rotate_visible() ? 1 : 0);
-    const int y1 = 80 + 44 * (slots - 1) + (construction_rotate_visible() ? 12 : 0);
+    const int y1 = base.y + 36 + 44 * (slots - 1) + (construction_rotate_visible() ? 12 : 0);
     return pt.x >= x0 && pt.x < x1 && pt.y >= y0 && pt.y < y1;
 }
 
@@ -197,10 +199,10 @@ static void draw_construction_buttons() {
     const vec2i base = construction_buttons_base_pos();
     const int count = construction_buttons_count();
     if (count > 0) {
-        inner_panel_draw({base.x - 4, 40}, {3, 2});
+        inner_panel_draw({base.x - 4, base.y - 4}, {3, 2});
     }
     if (count > 1) {
-        inner_panel_draw({base.x - 4, 76}, {3, 2});
+        inner_panel_draw({base.x - 4, base.y + 32}, {3, 2});
     }
     image_buttons_draw(base, construction_buttons, count);
 
@@ -321,6 +323,15 @@ static rect company_orders_button_rect() {
 vec2i window_city_company_orders_button_center() {
     const rect r = company_orders_button_rect();
     return {(r.mn.x + r.mx.x) / 2, (r.mn.y + r.mx.y) / 2};
+}
+
+int window_city_company_orders_button_top() {
+    return company_orders_button_rect().mn.y;
+}
+
+int window_city_construction_rotate_button_top() {
+    update_construction_rotate_button();
+    return construction_buttons_base_pos().y + construction_buttons[2].y;
 }
 
 void window_city_draw_company_orders_button() {
