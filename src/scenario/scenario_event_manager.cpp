@@ -1041,6 +1041,7 @@ void event_manager_t::process_event(int id, bool via_event_trigger, int chain_ac
             case EVENT_SUBTYPE_NEW_TRADE_ROUTE:
                 // Unlock trading type (e.g. PHARAOH → PHARAOH_TRADING) and open the route.
                 city->set_trade_enabled(true);
+                city->fill_missing_route_limits();
                 city->is_open = true;
                 if (full_empire_object *full = g_empire.ref_full_object(city->empire_object_id)) {
                     full->trade_route_open = 1;

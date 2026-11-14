@@ -91,6 +91,17 @@ void empire_city::clear_trade_resources() {
     std::fill_n(buys_resource, RESOURCES_MAX, false);
 }
 
+void empire_city::fill_missing_route_limits() {
+    constexpr int k_default_limit = 1500;
+    trade_route& route = get_route();
+    for (e_resource resource = RESOURCES_MIN; resource < RESOURCES_MAX; ++resource) {
+        if ((sells_resource[resource] || buys_resource[resource])
+            && route.limit(resource, trade_route::e_limit_base_only) <= 0) {
+            route.init(resource, k_default_limit);
+        }
+    }
+}
+
 void empire_city::set_trade_enabled(bool enabled) {
     if (enabled) {
         switch (type) {

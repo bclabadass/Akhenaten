@@ -155,7 +155,13 @@ static void sync_city_object_size(full_empire_object *full, e_empire_city city_t
 }
 
 static void apply_scripted_trade_route_limits(empire_city *city, archive entry, bool preserve_runtime) {
-    if (!city || !city->can_trade()) {
+    if (!city) {
+        return;
+    }
+    // A city whose route opens later (NEW_TRADE_ROUTE) keeps its scripted limits for then. Route 0
+    // is shared by cities that never trade, ours among them.
+    const bool trading = city->can_trade();
+    if (!trading && (city->type == EMPIRE_CITY_OURS || city->route_id <= 0)) {
         return;
     }
 
@@ -184,19 +190,11 @@ static void apply_scripted_trade_route_limits(empire_city *city, archive entry, 
         }
     });
 
-    if (has_explicit_limits) {
+    if (has_explicit_limits || !trading) {
         return;
     }
 
-    // No route_limits: fill missing sells/buys with default yearly tier.
-    constexpr int k_default_limit = 1500;
-    for (e_resource resource = RESOURCES_MIN; resource < RESOURCES_MAX; ++resource) {
-        if (city->sells_resource[resource] || city->buys_resource[resource]) {
-            if (route.limit(resource, trade_route::e_limit_base_only) <= 0) {
-                route.init(resource, k_default_limit);
-            }
-        }
-    }
+    city->fill_missing_route_limits();
 }
 
 void empire_t::load_empire_cities(archive arch, bool preserve_runtime) {
@@ -316,8 +314,8 @@ void empire_t::load_empire_cities(archive arch, bool preserve_runtime) {
 
         if (city->can_trade()) {
             g_empire.set_trade_route_type(city->route_id, city->is_sea_trade);
-            apply_scripted_trade_route_limits(city, entry, preserve_runtime);
         }
+        apply_scripted_trade_route_limits(city, entry, preserve_runtime);
     });
 }
 

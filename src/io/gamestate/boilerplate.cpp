@@ -235,9 +235,9 @@ bool GamestateIO::load_mission(const int scenario_id, bool start_immediately) {
         return false;
     }
 
-    // Scenario selection loads with start_immediately=false, so start_loaded_file()
-    // (which also calls init_cities) never runs. post_load() needs EMPIRE_CITY_OURS via
-    // update_allowed_foods() — rebuild cities from empire objects first.
+    // The only place a mission's cities are built from the empire objects: post_load() needs
+    // EMPIRE_CITY_OURS via update_allowed_foods(), then applies the mission script on top, and
+    // start_loaded_file() leaves mission cities alone so the script's trade limits stay.
     g_empire.init_cities();
 
     GamestateLoadDetail::post_load();
@@ -368,7 +368,11 @@ void GamestateIO::start_loaded_file() {
 
         // traders / empire
         g_empire_map.init_scenario();
-        g_empire.init_cities();
+        // load_mission built a mission's cities before post_load applied its script (route limits,
+        // the cities it adds); building them again from the map objects would undo the script.
+        if (game.session.last_loaded != e_session_mission) {
+            g_empire.init_cities();
+        }
         g_empire_traders.init();
 
         // set up events
