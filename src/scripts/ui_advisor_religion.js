@@ -29,8 +29,8 @@ var advisor_religion_bolt_angel_images = null
 function advisor_religion_get_bolt_angel_images() {
 	if (!advisor_religion_bolt_angel_images) {
 		advisor_religion_bolt_angel_images = {
-			bolt: get_image({ pack: PACK_GENERAL, id: 129, offset: 34 }),
-			angel: get_image({ pack: PACK_GENERAL, id: 129, offset: 33 })
+			bolt: get_image({ pack: PACK_GENERAL, id: 129, offset: 33 }),
+			angel: get_image({ pack: PACK_GENERAL, id: 129, offset: 34 })
 		}
 	}
 	return advisor_religion_bolt_angel_images

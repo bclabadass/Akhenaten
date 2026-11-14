@@ -15,5 +15,12 @@ namespace ui {
         e_god god;
         uint16_t background_img;
         animations_t god_images;
+
+        // The god layout's own sizes: init_data sizes the dialog from each message's size, which
+        // doesn't fit the portrait-on-top layout.
+        vec2i layout_background_size;
+        vec2i layout_panel_size;
+        vec2i layout_text_size;
+        int layout_title_width = 0;
     };
 }
