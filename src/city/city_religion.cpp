@@ -823,7 +823,7 @@ void city_religion_t::update_mood(e_god randm_god) {
             god->happy_ankhs += difficultyLevels[difficulty];
         }
 
-        god->happy_ankhs = std::min<uint8_t>(god->wrath_bolts, 50);
+        god->happy_ankhs = std::min<uint8_t>(god->happy_ankhs, 50);
     }
 }
 

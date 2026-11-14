@@ -325,6 +325,9 @@ After each test script loads, the driver calls `js_vm_sync({})` so any top-level
 | `__test_storage_rooms_dump()` | string | `room:yard:resource:amount;` for every storage room |
 | `__test_screen_pixel(x, y)` | int | RGB of a pixel in the last drawn frame (canvas pixels at 100% or on the inner screen; window pixels at other desktop scales), −1 if unreadable |
 | `__test_sound_ready()` / `__test_sound_channel_file(ch)` / `__test_sound_channel_loaded(ch)` | bool / string / bool | Mixer running; a sound channel's file (empty under `--nosound`/`--no-resource`); whether its file has loaded |
+| `__test_ghost_fade_stats()` | string | `drawn,faded,kept` draw commands of the last building preview |
+| `__test_god_set_state(god, mood, months_since_festival)` | undefined | Set a god's mood and target mood, clear its ankhs and bolts |
+| `__test_religion_update_mood(god)` / `__test_religion_monthly_blessings(god)` | undefined | One day's mood update / the month-start blessing and curse check, with `god` as the randomly picked god |
 | `__test_yards_stored(resource)` / `__test_yards_stored_staffed(resource)` | int | City granite/etc. in yards (all / staffed only) |
 | `__test_building_current_image(bid)` | int | Monument `building_image_get()` |
 | `__test_camera_center_building(bid)` | undefined | Center camera on building / monument `center_point` |

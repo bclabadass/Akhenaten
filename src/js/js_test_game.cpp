@@ -359,6 +359,31 @@ static xstring __test_ghost_fade_stats() {
 }
 ANK_FUNCTION(__test_ghost_fade_stats);
 
+static void __test_god_set_state(int god, int mood, int months_since_festival) {
+    if (god < 0 || god >= MAX_GODS) {
+        return;
+    }
+    god_state& g = g_city.religion.gods[god];
+    g.mood = (uint8_t)mood;
+    g.target_mood = (uint8_t)mood;
+    g.happy_ankhs = 0;
+    g.wrath_bolts = 0;
+    g.months_since_festival = (uint8_t)months_since_festival;
+}
+ANK_FUNCTION_3(__test_god_set_state);
+
+// One day's mood update with `god` as the day's randomly picked god.
+static void __test_religion_update_mood(int god) {
+    g_city.religion.update_mood((e_god)god);
+}
+ANK_FUNCTION_1(__test_religion_update_mood);
+
+// The month-start blessing/curse check with `god` as the month's picked god.
+static void __test_religion_monthly_blessings(int god) {
+    g_city.religion.update_curses_and_blessings((e_god)god, GED_EVENT_UNKNOWN);
+}
+ANK_FUNCTION_1(__test_religion_monthly_blessings);
+
 // RGB of a canvas pixel in the last drawn frame, or -1 if it can't be read.
 static int __test_screen_pixel(int x, int y) {
     painter ctx = game.painter();
