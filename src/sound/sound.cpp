@@ -894,6 +894,10 @@ void sound_manager_t::update_channel(int channel, vfs::path filename) {
 }
 
 void sound_manager_t::play_effect(int effect) {
+    if (requested_effects_count < (int)requested_effects.size()) {
+        requested_effects[requested_effects_count++] = (int16_t)effect;
+    }
+
     if (!game_features::gameopt_sound_effects_enabled.to_bool()) {
         return;
     }

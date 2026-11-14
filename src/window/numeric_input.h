@@ -2,6 +2,7 @@
 #define WINDOW_NUMERIC_INPUT_H
 
 void window_numeric_input_show(int x, int y, int max_digits, int max_value, void (*callback)(int));
+int window_numeric_input_value();
 
 void window_numeric_input_accept(void);
 

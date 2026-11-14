@@ -14,7 +14,7 @@ enum e_sound_effect {
     SOUND_EFFECT_ARROW_HIT = 9,
     SOUND_EFFECT_AXE = 10,
     SOUND_EFFECT_BALLISTA_SHOOT = 11,
-    SOUND_EFFECT_BALLISTA_HIT_GROUND = 12,
+    SOUND_EFFECT_FIRE = 12, // a building catches fire (was the unused Caesar 3 ballista ground hit)
     SOUND_EFFECT_BALLISTA_HIT_PERSON = 13,
     SOUND_EFFECT_CLUB = 14,
     SOUND_EFFECT_CAMEL = 15,
@@ -38,7 +38,7 @@ enum e_sound_effect {
     SOUND_EFFECT_CITIZEN_DIE = 36, // 4x
     SOUND_EFFECT_SHEEP_DIE = 40,
     SOUND_EFFECT_ZEBRA_DIE = 41,
-    SOUND_EFFECT_WOLF_HOWL = 42,
+    SOUND_EFFECT_DIG = 42, // clearing land and demolishing (was the unused Caesar 3 wolf howl)
     SOUND_EFFECT_FIRE_SPLASH = 43,
     SOUND_EFFECT_FORMATION_SHIELD = 44,
     SOUND_EFFECT_DANCER_DIE = 45,

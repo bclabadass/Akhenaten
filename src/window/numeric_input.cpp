@@ -126,7 +126,7 @@ static void input_number(int number) {
     if (data.num_digits < data.max_digits) {
         data.value = data.value * 10 + number;
         data.num_digits++;
-        g_sound.play_effect(SOUND_EFFECT_BUILD);
+        g_sound.play_effect(SOUND_EFFECT_ICON);
     }
 }
 
@@ -138,6 +138,10 @@ static void input_accept() {
         data.value = data.max_value;
 
     data.callback(data.value);
+}
+
+int window_numeric_input_value() {
+    return g_numeric_input.value;
 }
 
 void window_numeric_input_show(int x, int y, int max_digits, int max_value, void (*callback)(int)) {

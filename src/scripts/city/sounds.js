@@ -70,6 +70,8 @@ sound_effects = [
   {c: SOUND_EFFECT_FANFARE_URGENT,  p: "Wavs/FANFARE2.WAV"},
   {c: SOUND_EFFECT_EXPLOSION,       p: "Wavs/CRASH.WAV"},
   {c: SOUND_EFFECT_FIRE_SPLASH,     p: "Wavs/SPLASH.WAV"},
+  {c: SOUND_EFFECT_FIRE,            p: "Wavs/FIRE.WAV"},
+  {c: SOUND_EFFECT_DIG,             p: "Wavs/DIG.WAV"},
   {c: SOUND_EFFECT_ARROW,           p: "Wavs/ARCH_ATK.WAV"},
   {c: SOUND_EFFECT_JAVELIN,         p: "Wavs/ship_arrow.wav"},
   {c: SOUND_EFFECT_SWORD,           p: "Wavs/sword_atk.wav"},

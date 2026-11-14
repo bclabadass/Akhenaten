@@ -67,6 +67,10 @@ public:
     const xstring& music_current_track() const;
     void play_track(const xstring track, bool loop = true);
     void play_effect(int effect);
+
+    // Effects the game asked for since the last clear, even with effects or the mixer off (tests).
+    std::array<int16_t, 64> requested_effects{};
+    int requested_effects_count = 0;
     void stop_city_channels();
 
 public:

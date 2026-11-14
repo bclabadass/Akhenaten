@@ -689,7 +689,7 @@ void building::destroy_by_fire() {
 
     destroy_on_fire_impl(false);
     destroy_linked_parts(true);
-    g_sound.play_effect(SOUND_EFFECT_EXPLOSION);
+    g_sound.play_effect(SOUND_EFFECT_FIRE);
 }
 
 void building::destroy_linked_parts(bool on_fire) {

@@ -110,6 +110,7 @@
 #include "graphics/color.h"
 #include "city/city.h"
 #include "sound/sound.h"
+#include "window/numeric_input.h"
 #include "city/city_message.h"
 #include "city/city_industry.h"
 #include "city/city_buildings.h"
@@ -383,6 +384,45 @@ static void __test_religion_monthly_blessings(int god) {
     g_city.religion.update_curses_and_blessings((e_god)god, GED_EVENT_UNKNOWN);
 }
 ANK_FUNCTION_1(__test_religion_monthly_blessings);
+
+// Sound effects the game asked for since the last call, as "4,42"; clears the list.
+static xstring __test_sound_effects_requested() {
+    char out[512] = "";
+    int len = 0;
+    for (int i = 0; i < g_sound.requested_effects_count && len < (int)sizeof(out) - 8; i++) {
+        len += snprintf(out + len, sizeof(out) - len, i ? ",%d" : "%d", g_sound.requested_effects[i]);
+    }
+    g_sound.requested_effects_count = 0;
+    return xstring(out);
+}
+ANK_FUNCTION(__test_sound_effects_requested);
+
+// How a building is destroyed: "fire", "collapse" or "enemy".
+static void __test_building_destroy(int bid, xstring how) {
+    building* b = building_get(bid);
+    if (!b || !b->is_valid()) {
+        return;
+    }
+    b = b->main();
+    if (how == "fire") {
+        b->destroy_by_fire();
+    } else if (how == "collapse") {
+        b->destroy_by_collapse();
+    } else if (how == "enemy") {
+        b->destroy_by_enemy();
+    }
+}
+ANK_FUNCTION_2(__test_building_destroy);
+
+static void __test_numeric_input_show(int x, int y) {
+    window_numeric_input_show(x, y, 3, 999, [](int) {});
+}
+ANK_FUNCTION_2(__test_numeric_input_show);
+
+static int __test_numeric_input_value() {
+    return window_numeric_input_value();
+}
+ANK_FUNCTION(__test_numeric_input_value);
 
 // RGB of a canvas pixel in the last drawn frame, or -1 if it can't be read.
 static int __test_screen_pixel(int x, int y) {

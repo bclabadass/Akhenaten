@@ -13,12 +13,14 @@ var sound_check_sections = [
     {
         title: "Sounds the game plays",
         rows: [
-            { channel: SOUND_EFFECT_ICON, event: "Tap a button or icon; quiet message chime" },
+            { channel: SOUND_EFFECT_ICON, event: "Tap a button or icon; a digit typed; a chime" },
             { channel: SOUND_EFFECT_SIDEBAR, event: "Control panel slides open or closed" },
-            { channel: SOUND_EFFECT_BUILD, event: "A building is placed; a digit typed" },
+            { channel: SOUND_EFFECT_BUILD, event: "A building or road is placed" },
+            { channel: SOUND_EFFECT_DIG, event: "Land is cleared or a building demolished" },
             { channel: SOUND_EFFECT_FANFARE, event: "A message arrives" },
             { channel: SOUND_EFFECT_FANFARE_URGENT, event: "An urgent message arrives" },
-            { channel: SOUND_EFFECT_EXPLOSION, event: "A building collapses, burns down or is wrecked" },
+            { channel: SOUND_EFFECT_EXPLOSION, event: "A building collapses or is wrecked" },
+            { channel: SOUND_EFFECT_FIRE, event: "A building catches fire" },
             { channel: SOUND_EFFECT_FIRE_SPLASH, event: "A fireman puts out a fire" },
             { channel: SOUND_EFFECT_ARROW, event: "An enemy archer or spearman shoots" },
             { channel: SOUND_EFFECT_JAVELIN, event: "A warship fires; a spear or javelin hits" },
@@ -43,9 +45,7 @@ var sound_check_sections = [
         title: "Pharaoh sounds not played as effects yet",
         rows: [
             { file: "Wavs/NO.WAV", event: "\"No\": probably a blocked placement" },
-            { file: "Wavs/DIG.WAV", event: "Digging: probably canals or ditches" },
             { file: "Wavs/MENU.WAV", event: "A menu opens" },
-            { file: "Wavs/FIRE.WAV", event: "A building catches fire (now: ruins)" },
             { file: "Wavs/CROCATK.WAV", event: "A crocodile attacks" },
             { file: "Wavs/CROCDIE.WAV", event: "A crocodile dies" },
             { file: "Wavs/HIPPODIE.WAV", event: "A hippo dies" },
@@ -221,10 +221,10 @@ function sound_check_window_draw(window) {
         if (ui.button({ text: "Play", pos: [origin.x + w - 236, y + 2], size: [64, 28] }) == ui.button_clicked) {
             sound_check_play(row.number)
         }
-        if (ui.button({ text: verdict == "right" ? "[Right]" : "Right", pos: [origin.x + w - 164, y + 2], size: [70, 28] }) == ui.button_clicked) {
+        if (ui.button({ text: verdict == "right" ? "RIGHT" : "Right", pos: [origin.x + w - 164, y + 2], size: [70, 28] }) == ui.button_clicked) {
             sound_check_mark(row.number, "right")
         }
-        if (ui.button({ text: verdict == "wrong" ? "[Wrong]" : "Wrong", pos: [origin.x + w - 86, y + 2], size: [70, 28] }) == ui.button_clicked) {
+        if (ui.button({ text: verdict == "wrong" ? "WRONG" : "Wrong", pos: [origin.x + w - 86, y + 2], size: [70, 28] }) == ui.button_clicked) {
             sound_check_mark(row.number, "wrong")
         }
     }

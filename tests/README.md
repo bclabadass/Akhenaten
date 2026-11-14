@@ -328,6 +328,9 @@ After each test script loads, the driver calls `js_vm_sync({})` so any top-level
 | `__test_ghost_fade_stats()` | string | `drawn,faded,kept` draw commands of the last building preview |
 | `__test_god_set_state(god, mood, months_since_festival)` | undefined | Set a god's mood and target mood, clear its ankhs and bolts |
 | `__test_religion_update_mood(god)` / `__test_religion_monthly_blessings(god)` | undefined | One day's mood update / the month-start blessing and curse check, with `god` as the randomly picked god |
+| `__test_sound_effects_requested()` | string | Sound effects the game asked for since the last call (`"4,42"`), recorded even with effects or audio off; clears the list |
+| `__test_building_destroy(bid, how)` | undefined | Destroy a building the game's way: `"fire"`, `"collapse"` or `"enemy"` |
+| `__test_numeric_input_show(x, y)` / `__test_numeric_input_value()` | undefined / int | Open the editor's number pad at x,y (3 digits, no-op callback) / the value typed so far |
 | `__test_yards_stored(resource)` / `__test_yards_stored_staffed(resource)` | int | City granite/etc. in yards (all / staffed only) |
 | `__test_building_current_image(bid)` | int | Monument `building_image_get()` |
 | `__test_camera_center_building(bid)` | undefined | Center camera on building / monument `center_point` |
