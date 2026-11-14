@@ -8,7 +8,12 @@
 struct object_info;
 struct tooltip_context;
 
-struct event_show_tile_info { tile2i tile; bool avoid_mouse; pcstr source_location; };
+struct event_show_tile_info {
+    tile2i tile;
+    bool avoid_mouse;
+    pcstr source_location;
+    bool company_orders = false;
+};
 struct event_update_tile_info { bool avoid_mouse; };
 
 struct common_info_window : public ui::widget {

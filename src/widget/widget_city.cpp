@@ -1172,6 +1172,25 @@ bool screen_city_t::handle_legion_click(tile2i tile) {
     return false;
 }
 
+// Touch has no right-click, so a tap on the fort itself opens its company's orders (formations, return
+// to fort). A tap on the parade ground, the standard or a soldier still selects the company to move.
+bool screen_city_t::handle_fort_tap(tile2i tile) {
+    building* b = tile.valid() ? building_at(tile) : nullptr;
+    if (!b || !b->is_valid() || !b->is_fort() || b->type == BUILDING_FORT_GROUND) {
+        return false;
+    }
+
+    const formation* m = formation_get(b->formation_id);
+    if (!m || !m->in_use || !m->own_batalion || m->in_distant_battle) {
+        return false;
+    }
+
+    g_scroll.drag_end();
+    capture_input = false;
+    events::emit(event_show_tile_info{tile, false, SOURCE_LOCATION, true});
+    return true;
+}
+
 void screen_city_t::confirm_construction_placement() {
     logs::info("[build-btn] confirm_place enter type=%d progress=%d drag=%d sel=%d(%d,%d) cur=%d(%d,%d)",
                (int)g_city_planner.build_type, g_city_planner.in_progress ? 1 : 0, g_city_planner.draggable() ? 1 : 0,
@@ -1280,6 +1299,10 @@ void screen_city_t::handle_first_touch(tile2i tile) {
     e_building_type type = g_city_planner.build_type;
 
     if (touch_was_click(first)) {
+        if (type == BUILDING_NONE && handle_fort_tap(tile)) {
+            return;
+        }
+
         if (handle_legion_click(tile) || handle_warship_click(tile) || handle_transport_click(tile)) {
             return;
         }

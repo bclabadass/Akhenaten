@@ -310,6 +310,9 @@ After each test script loads, the driver calls `js_vm_sync({})` so any top-level
 | `__test_lion_is_curse_raid(fid)` | 0\|1 | Whether lion has curse-raid flag |
 | `__figure_get_anim_key(fid)` | string | Current `animctx.key` (e.g. `walk`, `swim`) |
 | `__test_show_tile_info(bid)` | undefined | Open building info window for `bid` |
+| `__test_show_company_orders(bid)` | undefined | Open the company orders panel for fort `bid`, as a tap on the fort does on a touch screen |
+| `__test_company_orders_button_pos()` | `{x,y}` | Centre of the Orders button shown on touch screens while a company is selected to move |
+| `__test_info_window_section()` | string | Section of the open info panel (`info_window_fort`, `batalion_info_window`, …), or `""` |
 | `__test_info_ui_text(element_id)` | string | Text of a named element on the current building/terrain info window (e.g. `workers_text`) |
 | `__test_color_roundtrip(color)` | number | Echo a `color` (uint32) back through the binding conversion; asserts full `COLOR_MASK_*` survive MuJS→C++ (J1) |
 | `__test_count_scenario_map_points(kind)` | int | Valid map points of `prey` / `animals` / `fishing` in the loaded scenario |

@@ -35,6 +35,8 @@
 #include "input/touch.h"
 #include "input/scroll.h"
 #include "platform/platform.h"
+#include "building/building.h"
+#include "window/window_info.h"
 #include <climits>
 #include <iterator>
 
@@ -290,6 +292,76 @@ static bool handle_construction_buttons(const mouse *m) {
             logs::info("[build-btn] gesture click which=%d start=(%d,%d) end=(%d,%d)", active_btn, t->start_point.x,
                        t->start_point.y, t->current_point.x, t->current_point.y);
             fire(active_btn);
+        }
+    }
+    return true;
+}
+
+// Touch has no right-click to open a company's orders, so while a company is selected to move, a
+// button where the rotate button sits during placement opens them.
+static bool company_orders_button_pressed = false;
+
+static bool company_orders_button_visible() {
+    return touch_only_platform() || mouse::get().is_touch;
+}
+
+static pcstr company_orders_button_text() {
+    return lang_text_from_key("#company_orders_button");
+}
+
+static rect company_orders_button_rect() {
+    const vec2i base = construction_buttons_base_pos();
+    const image_button& rotate = construction_buttons[2];
+    const int width
+      = std::max<int>(rotate.width, text_get_width(company_orders_button_text(), FONT_LARGE_BLACK_ON_LIGHT) + 20);
+    const int right = base.x + rotate.x + rotate.width;
+    return {vec2i{right - width, base.y - 4}, vec2i{right, base.y - 4 + rotate.height}};
+}
+
+vec2i window_city_company_orders_button_center() {
+    const rect r = company_orders_button_rect();
+    return {(r.mn.x + r.mx.x) / 2, (r.mn.y + r.mx.y) / 2};
+}
+
+void window_city_draw_company_orders_button() {
+    if (!company_orders_button_visible()) {
+        return;
+    }
+
+    const rect r = company_orders_button_rect();
+    const vec2i size{r.w(), r.h()};
+    outer_panel_draw_exact(r.mn, size);
+    const int pressed_offset = company_orders_button_pressed ? 1 : 0;
+    text_draw_centered((const uint8_t*)company_orders_button_text(), r.mn.x + pressed_offset,
+      r.mn.y + 11 + pressed_offset, size.x, FONT_LARGE_BLACK_ON_LIGHT, COLOR_MASK_NONE);
+}
+
+bool window_city_handle_company_orders_button(const mouse* m, int formation_id) {
+    const touch_t* t = (m->is_touch || touch_only_platform()) ? get_earliest_touch_raw() : nullptr;
+    if (!t || !t->in_use) {
+        company_orders_button_pressed = false;
+        return false;
+    }
+
+    const int padding = 12;
+    const rect r = company_orders_button_rect();
+    auto on_button = [&](vec2i pt) {
+        return pt.x >= r.mn.x - padding && pt.x < r.mx.x + padding && pt.y >= r.mn.y - padding
+               && pt.y < r.mx.y + padding;
+    };
+    if (!on_button(t->start_point)) {
+        company_orders_button_pressed = false;
+        return false;
+    }
+
+    company_orders_button_pressed = on_button(t->current_point);
+    if (t->has_ended) {
+        const bool fire = company_orders_button_pressed;
+        company_orders_button_pressed = false;
+        const formation* f = formation_get(formation_id);
+        building* fort = (fire && f && f->in_use) ? building_get(f->building_id) : nullptr;
+        if (fort && fort->is_valid() && fort->is_fort()) {
+            events::emit(event_show_tile_info{fort->tile, false, SOURCE_LOCATION, true});
         }
     }
     return true;

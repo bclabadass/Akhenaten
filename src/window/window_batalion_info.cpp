@@ -254,7 +254,15 @@ void batalion_info_window::window_info_background(object_info &c) {
 bool batalion_info_window::check(object_info &c) {
     // Fort buildings use info_window_fort. Company orders open when the player
     // right-clicks the standard bearer or any soldier in an own battalion
-    // (same routing as Julius BUILDING_INFO_LEGION).
+    // (same routing as Julius BUILDING_INFO_LEGION), or taps a fort on a touch screen,
+    // which has no right-click.
+    if (c.company_orders) {
+        building* fort = c.building_get();
+        const formation* m
+          = (fort && fort->is_valid() && fort->is_fort()) ? formation_get(fort->formation_id) : nullptr;
+        return m && m->in_use && m->own_batalion;
+    }
+
     if (c.figure_ids.empty()) {
         return false;
     }

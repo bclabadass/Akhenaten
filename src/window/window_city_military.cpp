@@ -20,6 +20,7 @@ void draw_foreground_military(int) {
     widget_sidebar_city_draw_foreground_military();
     g_window_city.draw_paused_panel();
     window_city_draw_time_left_panel();
+    window_city_draw_company_orders_button();
     g_figure_follow.draw_panel();
 }
 
@@ -33,6 +34,9 @@ void window_city_military_show(int legion_formation_id) {
         [] (auto m, auto h) {
           window_city_handle_hotkeys(h);
           if (g_figure_follow.handle_escape(h) || g_figure_follow.handle_mouse(m)) {
+              return;
+          }
+          if (window_city_handle_company_orders_button(m, selected_legion_formation_id)) {
               return;
           }
           g_screen_city.handle_input_military(m, h, selected_legion_formation_id);

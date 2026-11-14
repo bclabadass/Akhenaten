@@ -40,6 +40,7 @@ struct screen_city_t {
     xstring get_overlay_tooltip(tooltip_context *c, tile2i tile);
     void confirm_construction_placement();
     bool handle_legion_click(tile2i tile);
+    bool handle_fort_tap(tile2i tile);
     void update_zoom_level(painter &ctx);
     void scroll_map(const mouse *m);
     tile2i update_city_view_coords(vec2i pixel);

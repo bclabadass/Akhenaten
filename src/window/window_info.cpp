@@ -61,7 +61,7 @@ figure_info_window figure_common_window;
 building_info_window g_building_common_window;
 empty_info_window g_empty_info_window;
 
-void window_info_show(const tile2i& point, bool avoid_mouse);
+void window_info_show(const tile2i& point, bool avoid_mouse, bool company_orders = false);
 
 void ANK_REGISTER_CONFIG_ITERATOR(config_load_info_window) {
     g_building_common_window.load("building_info_window");
@@ -86,7 +86,7 @@ void ANK_REGISTER_CONFIG_ITERATOR(config_load_info_window) {
     load_configs(g_window_terrain_handlers);
 
     if (def_object_info.ui) {
-        window_info_show(tile2i(def_object_info.grid_offset), true);
+        window_info_show(tile2i(def_object_info.grid_offset), true, def_object_info.company_orders);
     }
 }
 
@@ -97,6 +97,7 @@ void object_info::reset(tile2i tile) {
     go_to_advisor_left_a = ADVISOR_NONE;
     go_to_advisor_left_b = ADVISOR_NONE;
     bid = map_building_at(tile);
+    company_orders = false;
     terrain_type = terrain_info_none;
     figure_drawn = 0;
     help_id = 0;
@@ -129,7 +130,7 @@ void window_info_update(bool avoid_mouse) {
         }
     };
 
-    if (!context.figure_ids.empty()) {
+    if (!context.figure_ids.empty() || context.company_orders) {
         verify_no_crash(g_window_batalion_handlers);
         find_handler(*g_window_batalion_handlers, context);
     }
@@ -176,9 +177,10 @@ void window_info_update(bool avoid_mouse) {
     window_ui_scale_apply(scale_before, false);
 }
 
-void window_info_init(tile2i tile, bool avoid_mouse) {
+void window_info_init(tile2i tile, bool avoid_mouse, bool company_orders) {
     auto &context = def_object_info;
     context.reset(tile);
+    context.company_orders = company_orders;
     context.fill_figures_info(tile);
 
     city_resource_determine_available();
@@ -226,7 +228,7 @@ static void window_info_handle_input(const mouse* m, const hotkeys* h) {
     }
 }
 
-void window_info_show(const tile2i& point, bool avoid_mouse) {
+void window_info_show(const tile2i& point, bool avoid_mouse, bool company_orders) {
     auto get_tooltip = [] (tooltip_context* c) {
         if (def_object_info.ui) {
             def_object_info.ui->draw_tooltip(c);
@@ -248,7 +250,7 @@ void window_info_show(const tile2i& point, bool avoid_mouse) {
         draw_refresh,
     };
 
-    window_info_init(point, avoid_mouse);
+    window_info_init(point, avoid_mouse, company_orders);
     window_show(&window);
 }
 
@@ -298,9 +300,7 @@ void common_info_window::window_info_foreground(object_info &c) {
 }
 
 void common_info_window::register_handlers() {
-    events::subscribe([] (event_show_tile_info ev) {
-        window_info_show(ev.tile, ev.avoid_mouse);
-    });
+    events::subscribe([](event_show_tile_info ev) { window_info_show(ev.tile, ev.avoid_mouse, ev.company_orders); });
 
     events::subscribe([] (event_update_tile_info ev) {
         window_info_update(true);

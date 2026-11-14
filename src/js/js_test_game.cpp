@@ -147,6 +147,7 @@
 #include "scenario/scenario_invasion.h"
 #include "scenario/types.h"
 #include "window/window_info.h"
+#include "window/window_city.h"
 #include "city/object_info.h"
 #include "scenario/request.h"
 #include "scenario/distant_battle.h"
@@ -350,6 +351,13 @@ static vec2i __test_window_pos(xstring section) {
     return w ? w->pos : vec2i{-1, -1};
 }
 ANK_FUNCTION_1(__test_window_pos);
+
+// The open building/figure info panel's section ("info_window_fort", "batalion_info_window"), or "".
+static xstring __test_info_window_section() {
+    const object_info& c = common_info_window::get_object_info();
+    return c.ui ? c.ui->get_section() : xstring();
+}
+ANK_FUNCTION(__test_info_window_section);
 
 extern build_planner::ghost_fade_stats g_ghost_fade_stats;
 // "drawn,faded,kept" for the last building preview.
@@ -3814,6 +3822,23 @@ void __test_show_tile_info(int bid) {
     events::emit(event_show_tile_info{ b->tile, true, "test" });
 }
 ANK_FUNCTION_1(__test_show_tile_info);
+
+// The panel a tap on the fort opens on a touch screen: its company's orders.
+void __test_show_company_orders(int bid) {
+    building* b = building_get(bid);
+    if (!b || !b->is_valid()) {
+        return;
+    }
+
+    events::emit(event_show_tile_info{b->tile, true, "test", true});
+}
+ANK_FUNCTION_1(__test_show_company_orders);
+
+// Centre of the Orders button shown while a company is selected to move (drawn on touch screens).
+static vec2i __test_company_orders_button_pos() {
+    return window_city_company_orders_button_center();
+}
+ANK_FUNCTION(__test_company_orders_button_pos);
 
 pcstr __test_info_ui_text(pcstr element_id) {
     static bstring512 buf;

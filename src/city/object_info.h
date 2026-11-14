@@ -59,6 +59,7 @@ struct object_info {
     xstring help_link;
     uint16_t group_id;
     bool can_play_sound;
+    bool company_orders = false;
     building_id bid = 0;
     common_info_window *ui = nullptr;
     terrain_info_type terrain_type;

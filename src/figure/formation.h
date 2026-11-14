@@ -153,12 +153,9 @@ struct formation {
 
     svector<figure *, max_figures_count> valid_figures();
 };
-ANK_CONFIG_PROPERTY(formation,
-    in_use, batalion_id, figure_type,
-    num_figures, morale, experience,
-    total_damage, max_total_damage, cursed_by_seth,
-    is_at_fort, home, in_distant_battle, request_event_id,
-    empire_service, ship_figure_id);
+ANK_CONFIG_PROPERTY(formation, in_use, batalion_id, figure_type, num_figures, morale, experience, total_damage,
+  max_total_damage, cursed_by_seth, is_at_fort, home, in_distant_battle, request_event_id, layout, empire_service,
+  ship_figure_id);
 
 using attacked_buildings = flat_map<building_id, bool, 32>;
 
