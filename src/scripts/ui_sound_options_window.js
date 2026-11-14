@@ -72,6 +72,7 @@ sound_options_window {
         effects_pct        : text({pos[326, 132], font: FONT_SMALL_PLAIN})
         btn_city           : button({pos[16, 158], size[224, 20], font: FONT_NORMAL_BLACK_ON_DARK })
         city_pct           : text({pos[326, 162], font: FONT_SMALL_PLAIN})
+        btn_sound_check    : button({pos[16, 192], size[224, 20], text:"Sound check", font: FONT_NORMAL_BLACK_ON_DARK })
 
         btnok              : ok_button({margin{left:px(24)/2 - 40, bottom:-40} })
         btncancel          : cancel_button({margin{left:px(24)/2 + 20, bottom:-40} })
@@ -172,4 +173,9 @@ function sound_options_btn_effects(window) {
 [es=(sound_options_window, btn_city)]
 function sound_options_btn_city(window) {
     game_features.gameopt_sound_city_enabled = !game_features.gameopt_sound_city_enabled
+}
+
+[es=(sound_options_window, btn_sound_check)]
+function sound_options_btn_sound_check(window) {
+    emit event_show_window{ id: "sound_check_window" }
 }

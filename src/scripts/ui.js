@@ -107,6 +107,7 @@ import ui_tower_window
 import ui_message_dialog
 import ui_display_options_window
 import ui_sound_options_window
+import ui_sound_check_window
 import ui_speed_options_window
 import ui_difficulty_options_window
 import ui_popup_messages_window
