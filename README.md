@@ -7,8 +7,8 @@ It is developed and played on an iPhone Duo, on both its folded and unfolded scr
 The iOS work is on the [`ios-port`](https://github.com/bclabadass/iKhenaten/tree/ios-port) branch.
 Below the line is upstream Akhenaten's own README.
 
-**Status: playable.** The first five campaign missions (Nubt, Thinis, Perwadjyt, Nekhen and
-Men-nefer) are confirmed working as intended on the phone, with no major issues; the table below
+**Status: playable.** The first six campaign missions (Nubt, Thinis, Perwadjyt, Nekhen, Men-nefer
+and Timna) are confirmed working as intended on the phone, with no major issues; the table below
 tracks the rest. Builds go out to a small group of testers through TestFlight; there is no App Store
 release.
 
@@ -25,7 +25,7 @@ the two.
   <tr><td>3</td><td>Perwadjyt</td><td>$\color{green}{\textbf{Yes}}$</td></tr>
   <tr><td>4</td><td>Nekhen</td><td>$\color{green}{\textbf{Yes}}$</td></tr>
   <tr><td>5</td><td rowspan="4">Early Dynastic</td><td>Men-nefer</td><td>$\color{green}{\textbf{Yes}}$</td></tr>
-  <tr><td>6</td><td>Timna</td><td>No</td></tr>
+  <tr><td>6</td><td>Timna</td><td>$\color{green}{\textbf{Yes}}$</td></tr>
   <tr><td>7</td><td>Behdet</td><td>No</td></tr>
   <tr><td>8</td><td>Abedju</td><td>No</td></tr>
   <tr><td>9</td><td rowspan="15">Old Kingdom</td><td>Selima</td><td>No</td></tr>
