@@ -7,9 +7,73 @@ It is developed and played on an iPhone Duo, on both its folded and unfolded scr
 The iOS work is on the [`ios-port`](https://github.com/bclabadass/iKhenaten/tree/ios-port) branch.
 Below the line is upstream Akhenaten's own README.
 
-**Status: playable.** The campaign missions through Nekhen (Nubt, Thinis, Perwadjyt and Nekhen) are
-confirmed working as intended on the phone, with no major issues. Builds are sideloaded from Xcode;
-there is no App Store release.
+**Status: playable.** The first five campaign missions (Nubt, Thinis, Perwadjyt, Nekhen and
+Men-nefer) are confirmed working as intended on the phone, with no major issues; the table below
+tracks the rest. Builds go out to a small group of testers through TestFlight; there is no App Store
+release.
+
+## Missions
+
+All 53 missions of _Pharaoh_ and _Cleopatra_. **Verified** means played on the phone and confirmed
+working as intended. A mission marked "(or N)" is one of a pair: the campaign lets you pick one of
+the two.
+
+<table>
+  <tr><th>#</th><th>Period</th><th>Mission</th><th>Verified</th></tr>
+  <tr><td>1</td><td rowspan="4">Pre-Dynasty</td><td>Nubt</td><td>$\color{green}{\textbf{Yes}}$</td></tr>
+  <tr><td>2</td><td>Thinis</td><td>$\color{green}{\textbf{Yes}}$</td></tr>
+  <tr><td>3</td><td>Perwadjyt</td><td>$\color{green}{\textbf{Yes}}$</td></tr>
+  <tr><td>4</td><td>Nekhen</td><td>$\color{green}{\textbf{Yes}}$</td></tr>
+  <tr><td>5</td><td rowspan="4">Early Dynastic</td><td>Men-nefer</td><td>$\color{green}{\textbf{Yes}}$</td></tr>
+  <tr><td>6</td><td>Timna</td><td>No</td></tr>
+  <tr><td>7</td><td>Behdet</td><td>No</td></tr>
+  <tr><td>8</td><td>Abedju</td><td>No</td></tr>
+  <tr><td>9</td><td rowspan="15">Old Kingdom</td><td>Selima</td><td>No</td></tr>
+  <tr><td>10</td><td>Abu</td><td>No</td></tr>
+  <tr><td>11</td><td>Saqqara</td><td>No</td></tr>
+  <tr><td>12</td><td>Serabit Khadim (or 13)</td><td>No</td></tr>
+  <tr><td>13</td><td>Meidum (or 12)</td><td>No</td></tr>
+  <tr><td>14</td><td>Buhen (or 15)</td><td>No</td></tr>
+  <tr><td>15</td><td>South Dahshur (or 14)</td><td>No</td></tr>
+  <tr><td>16</td><td>North Dahshur</td><td>No</td></tr>
+  <tr><td>17</td><td>Iunet (or 18)</td><td>No</td></tr>
+  <tr><td>18</td><td>On (or 17)</td><td>No</td></tr>
+  <tr><td>19</td><td>Rostja</td><td>No</td></tr>
+  <tr><td>20</td><td>Bahariya Oasis (or 21)</td><td>No</td></tr>
+  <tr><td>21</td><td>Djedu (or 20)</td><td>No</td></tr>
+  <tr><td>22</td><td>Dunqul (or 23)</td><td>No</td></tr>
+  <tr><td>23</td><td>Dakhla (or 22)</td><td>No</td></tr>
+  <tr><td>24</td><td rowspan="2">First Intermediate</td><td>Thinis (or 25)</td><td>No</td></tr>
+  <tr><td>25</td><td>Waset (or 24)</td><td>No</td></tr>
+  <tr><td>26</td><td rowspan="7">Middle Kingdom</td><td>Kebet (or 27)</td><td>No</td></tr>
+  <tr><td>27</td><td>Menat Khufu (or 26)</td><td>No</td></tr>
+  <tr><td>28</td><td>Itjtawy</td><td>No</td></tr>
+  <tr><td>29</td><td>Iken (or 30)</td><td>No</td></tr>
+  <tr><td>30</td><td>Sawu (or 29)</td><td>No</td></tr>
+  <tr><td>31</td><td>Heh (or 32)</td><td>No</td></tr>
+  <tr><td>32</td><td>Bubastis (or 31)</td><td>No</td></tr>
+  <tr><td>33</td><td rowspan="2">Second Intermediate</td><td>Khmun (or 34)</td><td>No</td></tr>
+  <tr><td>34</td><td>Sauty (or 33)</td><td>No</td></tr>
+  <tr><td>35</td><td rowspan="4">New Kingdom</td><td>Byblos</td><td>No</td></tr>
+  <tr><td>36</td><td>Baki</td><td>No</td></tr>
+  <tr><td>37</td><td>Rowarty</td><td>No</td></tr>
+  <tr><td>38</td><td>Hetepsensusret</td><td>No</td></tr>
+  <tr><td>39</td><td rowspan="3">Cleopatra: Valley of the Kings</td><td>Thutmose in the Valley</td><td>No</td></tr>
+  <tr><td>40</td><td>Tut in the Valley</td><td>No</td></tr>
+  <tr><td>41</td><td>Seti in the Valley</td><td>No</td></tr>
+  <tr><td>42</td><td rowspan="4">Cleopatra: Ramses II</td><td>Sumur</td><td>No</td></tr>
+  <tr><td>43</td><td>Qadesh</td><td>No</td></tr>
+  <tr><td>44</td><td>Abu Simbel</td><td>No</td></tr>
+  <tr><td>45</td><td>Ramses in the Valley</td><td>No</td></tr>
+  <tr><td>46</td><td rowspan="3">Cleopatra: Ancient Conquerors</td><td>Pi-Yer</td><td>No</td></tr>
+  <tr><td>47</td><td>Migdol</td><td>No</td></tr>
+  <tr><td>48</td><td>Tanis</td><td>No</td></tr>
+  <tr><td>49</td><td rowspan="5">Cleopatra: Cleopatra&#x27;s Capital</td><td>Alexandria (first)</td><td>No</td></tr>
+  <tr><td>50</td><td>Alexandria (second)</td><td>No</td></tr>
+  <tr><td>51</td><td>Maritis</td><td>No</td></tr>
+  <tr><td>52</td><td>Alexandria (third)</td><td>No</td></tr>
+  <tr><td>53</td><td>Actium</td><td>No</td></tr>
+</table>
 
 ## What iKhenaten adds
 
